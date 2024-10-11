@@ -75,3 +75,38 @@ func ApplyReject[T any](elems []T, f Predicate[T]) []T {
 
 	return elems[:top:top]
 }
+
+// RejectNils removes all nil elements from the slices if they implement the IsNil() method.
+//
+// IsNil must return false if the element is nil, otherwise true.
+//
+// Parameters:
+//   - elems: The elements to remove nils from.
+//
+// Returns:
+//   - []T: The elements without nils. Nil if all the elements are nil or no elements were specified.
+func RejectNils[T interface {
+	IsNil() bool
+}](elems []T) []T {
+	var count int
+
+	for _, elem := range elems {
+		if !elem.IsNil() {
+			count++
+		}
+	}
+
+	if count == 0 {
+		return nil
+	}
+
+	new_elems := make([]T, 0, count)
+
+	for _, elem := range elems {
+		if !elem.IsNil() {
+			new_elems = append(new_elems, elem)
+		}
+	}
+
+	return new_elems
+}
