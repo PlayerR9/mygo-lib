@@ -1,0 +1,110 @@
+package runes
+
+import (
+	"slices"
+	"testing"
+
+	"github.com/PlayerR9/go-verify/test"
+)
+
+// TestQuoteRunes tests the QuoteRunes function.
+func TestQuoteRunes(t *testing.T) {
+	type args struct {
+		slice    []rune
+		expected []string
+	}
+
+	tests := test.NewTests(func(args args) test.TestingFunc {
+		return func(t *testing.T) {
+			quoted := QuoteRunes(args.slice)
+
+			ok := slices.Equal(quoted, args.expected)
+			if !ok {
+				t.Errorf("expected %v, got %v", args.expected, quoted)
+			}
+		}
+	})
+
+	_ = tests.AddTest("with empty slice", args{
+		slice:    []rune{},
+		expected: nil,
+	})
+
+	_ = tests.AddTest("with slice", args{
+		slice:    []rune{'t', 'e', 's', 't'},
+		expected: []string{"'t'", "'e'", "'s'", "'t'"},
+	})
+
+	_ = tests.Run(t)
+}
+
+// TestRunesToStrings tests the RunesToStrings function.
+func TestRunesToStrings(t *testing.T) {
+	type args struct {
+		slice    []rune
+		expected []string
+	}
+
+	tests := test.NewTests(func(args args) test.TestingFunc {
+		return func(t *testing.T) {
+			strs := RunesToStrings(args.slice)
+
+			ok := slices.Equal(strs, args.expected)
+			if !ok {
+				t.Errorf("expected %v, got %v", args.expected, strs)
+			}
+		}
+	})
+
+	_ = tests.AddTest("with empty slice", args{
+		slice:    []rune{},
+		expected: nil,
+	})
+
+	_ = tests.AddTest("with slice", args{
+		slice:    []rune{'t', 'e', 's', 't'},
+		expected: []string{"t", "e", "s", "t"},
+	})
+
+	_ = tests.Run(t)
+}
+
+// TestEitherOrString tests the EitherOrString function.
+func TestEitherOrString(t *testing.T) {
+	type args struct {
+		elems    []string
+		expected string
+	}
+
+	tests := test.NewTests(func(args args) test.TestingFunc {
+		return func(t *testing.T) {
+			res := EitherOrString(args.elems)
+
+			if res != args.expected {
+				t.Errorf("expected %v, got %v", args.expected, res)
+			}
+		}
+	})
+
+	_ = tests.AddTest("with empty slice", args{
+		elems:    []string{},
+		expected: "",
+	})
+
+	_ = tests.AddTest("with one elem", args{
+		elems:    []string{"test"},
+		expected: "test",
+	})
+
+	_ = tests.AddTest("with two elems", args{
+		elems:    []string{"test", "test2"},
+		expected: "either test or test2",
+	})
+
+	_ = tests.AddTest("with three elems", args{
+		elems:    []string{"test", "test2", "test3"},
+		expected: "either test, test2, or test3",
+	})
+
+	_ = tests.Run(t)
+}
