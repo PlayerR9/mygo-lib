@@ -141,13 +141,14 @@ func TestIndicesOf(t *testing.T) {
 func TestNormalizeRunes(t *testing.T) {
 	type args struct {
 		data           []rune
+		tab_size       int
 		expected_err   string
 		expected_slice []rune
 	}
 
 	tests := test.NewTests(func(args args) test.TestingFunc {
 		return func(t *testing.T) {
-			normalized, err := NormalizeRunes(args.data)
+			normalized, err := NormalizeRunes(args.data, args.tab_size)
 
 			err = test.CheckErr(args.expected_err, err)
 			if err != nil {
@@ -163,26 +164,44 @@ func TestNormalizeRunes(t *testing.T) {
 
 	_ = tests.AddTest("with empty data", args{
 		data:           []rune{},
+		tab_size:       3,
 		expected_err:   "",
 		expected_slice: []rune{},
 	})
 
 	_ = tests.AddTest("with valid '\\r\\n' data", args{
 		data:           []rune{'t', 'e', 's', 't', '\r', '\n', 't', 'e', 's', 't'},
+		tab_size:       3,
 		expected_err:   "",
 		expected_slice: []rune{'t', 'e', 's', 't', '\n', 't', 'e', 's', 't'},
 	})
 
 	_ = tests.AddTest("with valid invalid data", args{
 		data:           []rune{'t', 'e', 's', 't', '\r', '\r', 'a'},
+		tab_size:       3,
 		expected_err:   "after '\\r': expected '\\n', got '\\r' instead",
 		expected_slice: []rune{'t', 'e', 's', 't', '\r', '\r', 'a'},
 	})
 
 	_ = tests.AddTest("with invalid data", args{
 		data:           []rune{'a', '\r'},
+		tab_size:       3,
 		expected_err:   "after '\\r': expected '\\n', got nothing instead",
 		expected_slice: []rune{'a', '\r'},
+	})
+
+	_ = tests.AddTest("no tab size", args{
+		data:           []rune{'t', 'e', 's', 't'},
+		tab_size:       0,
+		expected_err:   "(BadParameter) parameter (\"tab_size\") must be positive, got 0 instead",
+		expected_slice: []rune{'t', 'e', 's', 't'},
+	})
+
+	_ = tests.AddTest("with tabs", args{
+		data:           []rune{'t', 'e', 's', 't', '\t', '\t', 't', 'e', 's', 't'},
+		tab_size:       3,
+		expected_err:   "",
+		expected_slice: []rune{'t', 'e', 's', 't', ' ', ' ', ' ', ' ', ' ', ' ', 't', 'e', 's', 't'},
 	})
 
 	_ = tests.Run(t)
