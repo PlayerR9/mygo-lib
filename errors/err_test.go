@@ -4,46 +4,24 @@ import (
 	"testing"
 
 	test "github.com/PlayerR9/go-verify/test"
+	faults "github.com/PlayerR9/mygo-lib/PlayerR9/go-fault"
 )
 
-// TestNewErr tests the NewErr function.
-func TestNewErr(t *testing.T) {
-	type args struct {
-		code     ErrorCode
-		msg      string
-		expected string
+// TestInvalidErrorCode tests what happens when an invalid error code is passed.
+func TestInvalidErrorCode(t *testing.T) {
+	const (
+		Expected string = "(ErrorCode(-1)) something went wrong"
+	)
+
+	fault := faults.New[ErrorCode](-1, "something went wrong")
+	if fault == nil {
+		t.Fatal("want Fault, got nil")
 	}
 
-	tests := test.NewTests(func(args args) test.TestingFunc {
-		return func(t *testing.T) {
-			err := NewErr(args.code, args.msg)
-
-			err = test.CheckErr(args.expected, err)
-			if err != nil {
-				t.Error(err)
-			}
-		}
-	})
-
-	_ = tests.AddTest("with message", args{
-		code:     BadParameter,
-		msg:      "test is invalid",
-		expected: "(BadParameter) test is invalid",
-	})
-
-	_ = tests.AddTest("without message", args{
-		code:     BadParameter,
-		msg:      "",
-		expected: "(BadParameter) something went wrong",
-	})
-
-	_ = tests.AddTest("with invalid code", args{
-		code:     -1,
-		msg:      "",
-		expected: "(ErrorCode(-1)) something went wrong",
-	})
-
-	_ = tests.Run(t)
+	msg := fault.Error()
+	if msg != Expected {
+		t.Fatalf("want %q, got %q", Expected, msg)
+	}
 }
 
 // TestNewErrBadParameter tests the NewErrBadParameter function.
@@ -92,6 +70,7 @@ func TestNewErrBadParameter(t *testing.T) {
 	_ = tests.Run(t)
 }
 
+// TestNewErrNilParameter tests the NewErrNilParameter function.
 func TestNewErrNilParameter(t *testing.T) {
 	type args struct {
 		param    string
