@@ -1,3 +1,5 @@
+github.com/PlayerR9/go-fault v0.1.0 h1:lSk9V5u+d5P5w6lhm+ZYObZzPxf3U9ZotmxbIR71MvU=
+github.com/PlayerR9/go-fault v0.1.0/go.mod h1:YuujyahKlo4FtdYkoRRowwIh38TFLJGNnqjbfKVz5h8=
 github.com/PlayerR9/go-verify v0.1.0 h1:isFdqyc/8xQ6f4vtRGYOyCXElodlWv4YT5Hzp0Pc8qY=
 github.com/PlayerR9/go-verify v0.1.0/go.mod h1:JV0O22ENxfcnFlCPkQIkwtfCNS0IBMU42gB/BDTfY6w=
 github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=

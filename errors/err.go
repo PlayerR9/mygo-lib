@@ -3,7 +3,7 @@ package errors
 import (
 	"strconv"
 
-	faults "github.com/PlayerR9/mygo-lib/PlayerR9/go-fault"
+	faults "github.com/PlayerR9/go-fault"
 )
 
 // ErrorCode is an error code.

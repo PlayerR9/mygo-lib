@@ -3,8 +3,8 @@ package errors
 import (
 	"testing"
 
+	faults "github.com/PlayerR9/go-fault"
 	test "github.com/PlayerR9/go-verify/test"
-	faults "github.com/PlayerR9/mygo-lib/PlayerR9/go-fault"
 )
 
 // TestInvalidErrorCode tests what happens when an invalid error code is passed.
