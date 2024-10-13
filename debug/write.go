@@ -31,7 +31,7 @@ import (
 //   - To add an empty line at the end, use _ = yield("\n") in seq.
 func LogSeq(logger *log.Logger, title string, seq iter.Seq[string]) error {
 	if logger == nil {
-		return gers.NewErrNilParameter("logger")
+		return gers.NewBadParameter("logger", "not be nil")
 	}
 
 	if title != "" {

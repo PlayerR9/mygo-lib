@@ -14,41 +14,25 @@ const (
 	BadParameter ErrorCode = iota
 )
 
-// NewErrBadParameter is a convenience function that creates a new Err with BadParameter code and msg.
+// NewBadParameter is a convenience function that creates a new Fault with BadParameter code and msg.
 //
 // Parameters:
-//   - param: The name of the parameter.
-//   - msg: What the parameter must be. If empty, "is invalid" is used instead.
+//   - param_name: The name of the parameter. If empty, it is omitted.
+//   - must: What the parameter must be. If empty, "is invalid" is used instead, otherwise
+//     the string is prefixed with "must ".
 //
 // Returns:
-//   - error: The new error. Never returns nil.
-//
-// The message must be written assuming the "must " precedes it.
-func NewErrBadParameter(param string, msg string) error {
-	if msg != "" {
-		msg = "must " + msg
-	} else {
-		msg = "is invalid"
+//   - Fault: The new fault. Never returns nil.
+func NewBadParameter(param_name, must string) faults.Fault {
+	if param_name != "" {
+		param_name = strconv.Quote(param_name) + " "
 	}
 
-	if param != "" {
-		return faults.New(BadParameter, "parameter ("+strconv.Quote(param)+") "+msg)
+	if must == "" {
+		must = "is invalid"
 	} else {
-		return faults.New(BadParameter, "parameter "+msg)
+		must = "must " + must
 	}
-}
 
-// NewErrNilParameter is a convenience function that is like NewErrBadParameter but for nil parameters.
-//
-// Parameters:
-//   - param: The name of the parameter.
-//
-// Returns:
-//   - error: The new error. Never returns nil.
-func NewErrNilParameter(param string) error {
-	if param != "" {
-		return faults.New(BadParameter, "parameter ("+strconv.Quote(param)+") must not be nil")
-	} else {
-		return faults.New(BadParameter, "parameter must not be nil")
-	}
+	return faults.New(BadParameter, "Parameter "+param_name+must)
 }

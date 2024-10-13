@@ -123,7 +123,7 @@ func IndicesOf(data []rune, sep rune) []int {
 //   - errors.ErrAfter: If the characters are not valid UTF-8.
 func NormalizeRunes(chars []rune, tab_size int) ([]rune, error) {
 	if tab_size <= 0 {
-		return chars, gers.NewErrBadParameter("tab_size", fmt.Sprintf("be positive, got %d instead", tab_size))
+		return chars, gers.NewBadParameter("tab_size", fmt.Sprintf("be positive, got %d instead", tab_size))
 	}
 
 	if len(chars) == 0 {

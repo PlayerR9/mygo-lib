@@ -24,78 +24,47 @@ func TestInvalidErrorCode(t *testing.T) {
 	}
 }
 
-// TestNewErrBadParameter tests the NewErrBadParameter function.
-func TestNewErrBadParameter(t *testing.T) {
+// TestNewBadParameter tests the NewBadParameter function.
+func TestNewBadParameter(t *testing.T) {
 	type args struct {
-		param    string
-		msg      string
-		expected string
+		param_name string
+		must       string
+		expected   string
 	}
 
 	tests := test.NewTests(func(args args) test.TestingFunc {
 		return func(t *testing.T) {
-			err := NewErrBadParameter(args.param, args.msg)
+			fault := NewBadParameter(args.param_name, args.must)
 
-			err = test.CheckErr(args.expected, err)
+			err := test.CheckErr(args.expected, fault)
 			if err != nil {
 				t.Error(err)
 			}
 		}
 	})
 
-	_ = tests.AddTest("with message", args{
-		param:    "test",
-		msg:      "not be invalid",
-		expected: "(BadParameter) parameter (\"test\") must not be invalid",
+	_ = tests.AddTest("no parameter and must", args{
+		param_name: "",
+		must:       "",
+		expected:   "(BadParameter) Parameter is invalid",
 	})
 
-	_ = tests.AddTest("without message", args{
-		param:    "test",
-		msg:      "",
-		expected: "(BadParameter) parameter (\"test\") is invalid",
+	_ = tests.AddTest("no parameter but with must", args{
+		param_name: "",
+		must:       "be positive",
+		expected:   "(BadParameter) Parameter must be positive",
 	})
 
-	_ = tests.AddTest("empty param", args{
-		param:    "",
-		msg:      "",
-		expected: "(BadParameter) parameter is invalid",
+	_ = tests.AddTest("with parameter but no must", args{
+		param_name: "x",
+		must:       "",
+		expected:   "(BadParameter) Parameter \"x\" is invalid",
 	})
 
-	_ = tests.AddTest("empty param and message", args{
-		param:    "",
-		msg:      "be greater than 0",
-		expected: "(BadParameter) parameter must be greater than 0",
-	})
-
-	_ = tests.Run(t)
-}
-
-// TestNewErrNilParameter tests the NewErrNilParameter function.
-func TestNewErrNilParameter(t *testing.T) {
-	type args struct {
-		param    string
-		expected string
-	}
-
-	tests := test.NewTests(func(args args) test.TestingFunc {
-		return func(t *testing.T) {
-			err := NewErrNilParameter(args.param)
-
-			err = test.CheckErr(args.expected, err)
-			if err != nil {
-				t.Error(err)
-			}
-		}
-	})
-
-	_ = tests.AddTest("with param", args{
-		param:    "test",
-		expected: "(BadParameter) parameter (\"test\") must not be nil",
-	})
-
-	_ = tests.AddTest("without param", args{
-		param:    "",
-		expected: "(BadParameter) parameter must not be nil",
+	_ = tests.AddTest("with parameter and must", args{
+		param_name: "x",
+		must:       "be positive",
+		expected:   "(BadParameter) Parameter \"x\" must be positive",
 	})
 
 	_ = tests.Run(t)

@@ -59,7 +59,7 @@ func TestSuccessLogSeq(t *testing.T) {
 		dbg:          nil,
 		title:        "",
 		seq:          nil,
-		expected_err: fmt.Sprintf("(BadParameter) parameter (%q) must not be nil", "logger"),
+		expected_err: fmt.Sprintf("(BadParameter) Parameter %q must not be nil", "logger"),
 		expected_out: "",
 	})
 

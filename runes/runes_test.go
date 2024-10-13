@@ -193,7 +193,7 @@ func TestNormalizeRunes(t *testing.T) {
 	_ = tests.AddTest("no tab size", args{
 		data:           []rune{'t', 'e', 's', 't'},
 		tab_size:       0,
-		expected_err:   "(BadParameter) parameter (\"tab_size\") must be positive, got 0 instead",
+		expected_err:   "(BadParameter) Parameter \"tab_size\" must be positive, got 0 instead",
 		expected_slice: []rune{'t', 'e', 's', 't'},
 	})
 
