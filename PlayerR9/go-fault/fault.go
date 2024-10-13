@@ -28,9 +28,15 @@ type Fault interface {
 
 // Is checks whether the given fault is of the same type as the target fault.
 //
-// Two faults are said to be equal if they have the same pointer value or if the fault
-// implements the IsFault(Fault) bool method such that fault.IsFault(target) returns true. In
-// any other case, IsFault returns false.
+// If the target fault is nil, Is returns false.
+//
+// Otherwise, Is returns true if the given fault is of the same type as the target fault,
+// i.e. if the given fault's error code is the same as the fault code of the target fault.
+//
+// If the given fault does not have an error code, Is checks whether the given fault
+// is the same as the target fault or whether the given fault has the target fault as its base.
+//
+// If the given fault has an error code and the target fault does not, Is returns false.
 //
 // Parameters:
 //   - fault: The fault to check.
@@ -39,16 +45,22 @@ type Fault interface {
 // Returns:
 //   - bool: True if the given fault is of the same type as the target fault, false otherwise.
 func Is(fault Fault, target Fault) bool {
-	if fault == nil || target == nil {
-		return false
-	} else if fault == target {
-		return true
-	}
-
-	flt, ok := fault.(interface{ IsFault(Fault) bool })
-	if !ok {
+	if target == nil {
 		return false
 	}
 
-	return flt.IsFault(target)
+	for fault != nil {
+		if fault == target {
+			return true
+		}
+
+		flt, ok := fault.(interface{ IsFault(Fault) bool })
+		if ok {
+			return flt.IsFault(target)
+		}
+
+		fault = fault.Embeds()
+	}
+
+	return false
 }
