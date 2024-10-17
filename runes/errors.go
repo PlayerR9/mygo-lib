@@ -48,19 +48,8 @@ func NewErrBadEncoding(idx int) error {
 // Returns:
 //   - error: The new error. Never returns nil.
 func NewErrNotAsExpected(previous rune, expecteds []rune, got *rune) error {
-	elems := QuoteRunes(expecteds)
-
-	if got == nil {
-		return gers.NewErrAfter(
-			strconv.QuoteRune(previous),
-			gers.NewErrNotAsExpected(elems, nil),
-		)
-	} else {
-		str := strconv.QuoteRune(*got)
-
-		return gers.NewErrAfter(
-			strconv.QuoteRune(previous),
-			gers.NewErrNotAsExpected(elems, &str),
-		)
-	}
+	return gers.NewErrAfter(
+		strconv.QuoteRune(previous),
+		gers.NewErrNotAsExpected(true, "", got, expecteds),
+	)
 }

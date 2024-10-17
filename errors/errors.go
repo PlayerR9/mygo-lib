@@ -2,6 +2,9 @@ package errors
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 )
 
 var (
@@ -11,6 +14,92 @@ var (
 
 func init() {
 	ErrNilReceiver = errors.New("receiver must not be nil")
+}
+
+// ErrNotAsExpected is an error that is returned when an element is not as expected.
+type ErrNotAsExpected[T any] struct {
+	// Quote indicates whether the expected elements should be quoted.
+	Quote bool
+
+	// Kind is the kind of the expected elements.
+	Kind string
+
+	// Expecteds is the expected elements.
+	Expecteds []T
+
+	// Got is the actual element.
+	Got any
+}
+
+// Error implements the error interface.
+func (e ErrNotAsExpected[T]) Error() string {
+	var expected string
+
+	if len(e.Expecteds) == 0 {
+		expected = "something"
+	} else {
+		elems := make([]string, 0, len(e.Expecteds))
+
+		for _, elem := range e.Expecteds {
+			elems = append(elems, fmt.Sprint(elem))
+		}
+
+		if e.Quote {
+			for i := 0; i < len(elems); i++ {
+				elems[i] = strconv.Quote(elems[i])
+			}
+		}
+
+		expected = EitherOrString(elems)
+	}
+
+	var got string
+
+	if e.Got == nil {
+		got = "nothing"
+	} else if e.Quote {
+		got = strconv.Quote(fmt.Sprint(e.Got))
+	} else {
+		got = fmt.Sprint(e.Got)
+	}
+
+	var builder strings.Builder
+
+	builder.WriteString("expected ")
+
+	if e.Kind != "" {
+		builder.WriteString(e.Kind)
+		builder.WriteString(" to be ")
+	}
+
+	builder.WriteString(expected)
+	builder.WriteString(", got ")
+	builder.WriteString(got)
+
+	return builder.String()
+}
+
+// NewErrNotAsExpected returns a new ErrNotAsExpected error.
+//
+// Parameters:
+//   - quote: Indicates whether the expected elements should be quoted.
+//   - kind: The kind of the expected elements. If empty, it will be omitted.
+//   - got: The actual element.
+//   - expecteds: The expected elements.
+//
+// Returns:
+//   - error: The new error. Never returns nil.
+//
+// Format:
+//
+//	expected <kind> to be <expecteds>, got <got>
+func NewErrNotAsExpected[T any](quote bool, kind string, got any, expecteds ...T) error {
+	return &ErrNotAsExpected[T]{
+		Quote:     quote,
+		Kind:      kind,
+		Expecteds: expecteds,
+		Got:       got,
+	}
 }
 
 // ErrAfter is an error that is returned when an error occurs after an element.
@@ -64,57 +153,4 @@ func NewErrAfter(previous string, inner error) error {
 //   - error: The inner error.
 func (e ErrAfter) Unwrap() error {
 	return e.Inner
-}
-
-// ErrNotAsExpected is an error that is returned when an element is not as expected.
-type ErrNotAsExpected struct {
-	// Expecteds are the expected elements.
-	Expecteds []string
-
-	// Got is the actual element.
-	Got *string
-}
-
-// Error implements the error interface.
-func (e ErrNotAsExpected) Error() string {
-	var got string
-
-	if e.Got == nil {
-		got = "nothing"
-	} else {
-		got = *e.Got
-	}
-
-	var expected string
-
-	if len(e.Expecteds) == 0 {
-		expected = "nothing"
-	} else {
-		expected = EitherOrString(e.Expecteds)
-	}
-
-	return "expected " + expected + ", got " + got + " instead"
-}
-
-// NewErrNotAsExpected returns a new ErrNotAsExpected error.
-//
-// Parameters:
-//   - expecteds: The expected elements.
-//   - got: The actual element.
-//
-// Returns:
-//   - error: The new error. Never returns nil.
-//
-// Format:
-//
-//	"expected <expected>, got <got> instead"
-//
-// Where:
-//   - <expected>: The expected elements. Multiple elements use the either-or format. If empty, "nothing" is used.
-//   - <got>: The actual element. If nil, "nothing" is used.
-func NewErrNotAsExpected(expecteds []string, got *string) error {
-	return &ErrNotAsExpected{
-		Expecteds: expecteds,
-		Got:       got,
-	}
 }
