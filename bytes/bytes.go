@@ -43,8 +43,6 @@ func indicesOfByte(data []byte, sep byte, size int) []int {
 //
 // Returns:
 //   - []int: The indices.
-//
-// WARNING: This function is yet to be tested. However, it should work as expected.
 func IndicesOf(data []byte, sep []byte) []int {
 	sep_len := len(sep)
 
