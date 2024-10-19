@@ -3,22 +3,43 @@ package rank
 import (
 	"slices"
 
+	assert "github.com/PlayerR9/go-verify"
 	gers "github.com/PlayerR9/mygo-lib/errors"
 )
 
-type RankSol[T any] struct {
+// Rank is a rank solution.
+type Rank[T any] struct {
+	// buckets is a map of ranks to slices of solutions.
 	buckets map[int][]T
-	sizes   []int
+
+	// sizes is a sorted list of ranks.
+	sizes []int
 }
 
-func (r *RankSol[T]) Add(rank int, sol T) error {
+// New creates a new rank solution.
+//
+// Returns:
+//   - *Rank[T]: The new rank solution. Never returns nil.
+func New[T any]() *Rank[T] {
+	return &Rank[T]{
+		buckets: make(map[int][]T),
+	}
+}
+
+// Add adds a solution to the rank solution.
+//
+// Parameters:
+//   - rank: The rank of the solution.
+//   - sol: The solution to add.
+//
+// Returns:
+//   - error: An error if the receiver is nil.
+func (r *Rank[T]) Add(rank int, sol T) error {
 	if r == nil {
 		return gers.ErrNilReceiver
 	}
 
-	if r.buckets == nil {
-		r.buckets = make(map[int][]T)
-	}
+	assert.Cond(r.buckets != nil, "r.buckets must not be nil")
 
 	prev, ok := r.buckets[rank]
 	if !ok {
@@ -35,10 +56,17 @@ func (r *RankSol[T]) Add(rank int, sol T) error {
 	return nil
 }
 
-func (r RankSol[T]) Build() []T {
+// Build builds the rank solution. The first element has the highest
+// rank, and the last element has the lowest rank.
+//
+// Returns:
+//   - []T: The rank solution, sorted by the rank.
+func (r Rank[T]) Build() []T {
 	if len(r.sizes) == 0 {
 		return nil
 	}
+
+	assert.Cond(r.buckets != nil, "r.buckets must not be nil")
 
 	max := r.sizes[len(r.sizes)-1]
 	min := r.sizes[0]
@@ -57,7 +85,8 @@ func (r RankSol[T]) Build() []T {
 	return sols
 }
 
-func (r *RankSol[T]) Reset() {
+// Reset resets the evaluator to its initial state; allowing reuse.
+func (r *Rank[T]) Reset() {
 	if r == nil {
 		return
 	}

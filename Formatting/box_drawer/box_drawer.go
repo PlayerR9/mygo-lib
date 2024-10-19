@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	// DefaultBoxStyle is the default box style.
+	// DefaultBoxStyle is the default box style, that is, a padding of [1, 1, 1, 1] and
+	// a line type of BtNormal (no heavy lines).
 	DefaultBoxStyle *BoxStyle
 )
 
@@ -80,7 +81,10 @@ func NewBoxStyle(line_type BoxBorderType, is_heavy bool, padding [4]int) *BoxSty
 }
 
 var (
+	// HeavyCorners is the heavy corners of the box.
 	HeavyCorners [4][]byte
+
+	// LightCorners is the light corners of the box.
 	LightCorners [4][]byte
 )
 
@@ -184,36 +188,6 @@ func (bs BoxStyle) SideBorder() []byte {
 	return side_border
 }
 
-// make_tb_border is a helper function to make a top or bottom border.
-//
-// Parameters:
-//   - width: The width of the border.
-//   - border: The border character.
-//   - left_corner: The left corner character.
-//   - right_corner: The right corner character.
-//
-// Returns:
-//   - []rune: The top or bottom border.
-//
-// Assertions:
-//   - width >= 0
-//   - border != 0
-//   - left_corner != 0
-//   - right_corner != 0
-func make_tb_border(buff *Writer, width int, border, left_corner, right_corner []byte) error {
-	// dbg.AssertParam("width", width >= 0, luc.NewErrGTE(0))
-	// dbg.AssertParam("border", border != 0, errors.New("border cannot be \\0"))
-	// dbg.AssertParam("left_corner", left_corner != 0, errors.New("left_corner cannot be \\0"))
-	// dbg.AssertParam("right_corner", right_corner != 0, errors.New("right_corner cannot be \\0"))
-
-	err := buff.WriteMany(
-		left_corner,
-		bytes.Repeat(border, width),
-		right_corner,
-	)
-	return err
-}
-
 // Apply draws a box around a content that is specified in a table.
 //
 // Format: If the content is [['H', 'e', 'l', 'l', 'o'], ['W', 'o', 'r', 'l', 'd']], the box will be:
@@ -246,14 +220,14 @@ func (bs BoxStyle) Apply(w io.Writer, data []byte) (int, error) {
 	tbb_char := bs.TopBorder()
 	corners := bs.Corners()
 
-	right_edge, err := RightMostEdge(data)
+	right_edge, err := rightMostEdge(data)
 	if err != nil {
 		return 0, err
 	}
 
 	lines := bytes.Split(data, []byte("\n"))
 
-	lines = AlignRightEdge(lines, right_edge)
+	lines = alignRightEdge(lines, right_edge)
 
 	total_width := right_edge + bs.Padding[1] + bs.Padding[3]
 

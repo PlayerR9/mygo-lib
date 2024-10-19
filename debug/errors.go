@@ -32,7 +32,7 @@ func (e ErrPrintFailed) Error() string {
 //
 // Format:
 //
-//	could not print the <ordinal> element: <reason>
+//	"could not print the <ordinal> element: <reason>"
 //
 // Where:
 // - <ordinal>: The ordinal of the index + 1 according to humanize.Ordinal

@@ -1,51 +1,52 @@
 package rank
 
-import "errors"
+import (
+	"errors"
+
+	assert "github.com/PlayerR9/go-verify"
+	gers "github.com/PlayerR9/mygo-lib/errors"
+)
 
 // ErrOrSol is an evaluator that allows to separate errors from solutions
 // whilst giving priority to solutions according to a level. Higher levels
 // take precedence over lower levels.
 type ErrOrSol[T any] struct {
-	// errs is the list of errors.
-	errs []error
+	errs *Rank[error]
+	sols *Rank[T]
+}
 
-	// sols is the list of solutions.
-	sols []T
-
-	// level is the current level.
-	level int
+// NewErrOrSol returns a new ErrOrSol.
+//
+// Returns:
+//   - *ErrOrSol[T]: The new evaluator. Never returns nil.
+func NewErrOrSol[T any]() *ErrOrSol[T] {
+	return &ErrOrSol[T]{
+		errs: New[error](),
+		sols: nil,
+	}
 }
 
 // AddErr adds an error to the evaluator.
 //
 // Parameters:
-//   - level: The level of the error.
-//   - err: The error to add.
+//   - rank: The level of the error.
+//   - e: The error to add.
 //
 // Returns:
-//   - bool: True if the receiver is not nil, false otherwise.
+//   - bool: True if the error could be added, false otherwise.
 //
 // Behaviors:
 //   - If the error is nil, it is ignored.
 //   - If at least a solution has been added, the error is ignored.
-//   - If the error has a lower level than the current level, the error is ignored.
-func (eos *ErrOrSol[T]) AddErr(level int, err error) bool {
-	if err == nil {
+func (eos ErrOrSol[T]) AddErr(rank int, e error) bool {
+	if e == nil {
 		return true
-	} else if eos == nil {
+	} else if eos.errs == nil {
 		return false
 	}
 
-	if level < eos.level || len(eos.sols) > 0 {
-		return true
-	}
-
-	if level == eos.level {
-		eos.errs = append(eos.errs, err)
-	} else {
-		eos.errs = []error{err}
-		eos.level = level
-	}
+	err := eos.errs.Add(rank, e)
+	assert.Err(err, "eos.errs.Add(rank, e)")
 
 	return true
 }
@@ -54,108 +55,78 @@ func (eos *ErrOrSol[T]) AddErr(level int, err error) bool {
 // cause any existing errors to be ignored.
 //
 // Parameters:
-//   - level: The level of the solution.
+//   - rank: The level of the solution.
 //   - sol: The solution to add.
 //
 // Returns:
-//   - bool: True if the receiver is not nil, false otherwise.
-//
-// Behaviors:
-//   - If the solution is nil, it is ignored.
-//   - If at least an error has been added, the solution is ignored.
-//   - If the solution has a lower level than the current level, the solution is ignored.
-func (eos *ErrOrSol[T]) AddSol(level int, sol T) bool {
+//   - error: An error if the receiver is nil.
+func (eos *ErrOrSol[T]) AddSol(rank int, sol T) error {
 	if eos == nil {
-		return false
+		return gers.ErrNilReceiver
 	}
 
-	if len(eos.sols) == 0 {
-		if len(eos.errs) > 0 {
-			for i := 0; i < len(eos.errs); i++ {
-				eos.errs[i] = nil
-			}
-
-			eos.errs = eos.errs[:0]
-		}
-
-		eos.sols = []T{sol}
-		eos.level = level
-	} else {
-		if level < eos.level {
-			return true
-		}
-
-		if level == eos.level {
-			eos.sols = append(eos.sols, sol)
-		} else {
-			eos.sols = []T{sol}
-			eos.level = level
-		}
+	if eos.sols == nil {
+		eos.sols = New[T]()
+	} else if eos.errs != nil {
+		eos.errs = nil
 	}
 
-	return true
+	err := eos.sols.Add(rank, sol)
+	assert.Err(err, "eos.sols.Add(level, sol)")
+
+	return nil
 }
 
 // Errs returns the list of errors.
 //
 // Returns:
 //   - []error: The list of errors. Nil if there are no errors.
-func (fos ErrOrSol[T]) Errs() []error {
-	if len(fos.errs) == 0 {
+func (eos ErrOrSol[T]) Errs() []error {
+	if eos.errs == nil {
 		return nil
 	}
 
-	faults := make([]error, len(fos.errs))
-	copy(faults, fos.errs)
-
-	return faults
+	errs := eos.errs.Build()
+	return errs
 }
 
 // Join returns an error that is the errors.Join of the errors.
 //
 // Returns:
 //   - error: The joined error. Nil if there are no errors.
-func (fos ErrOrSol[T]) Join() error {
-	return errors.Join(fos.errs...)
+func (eos ErrOrSol[T]) Join() error {
+	if eos.errs == nil {
+		return nil
+	}
+
+	errs := eos.errs.Build()
+	err := errors.Join(errs...)
+
+	return err
 }
 
 // Sols returns the list of solutions.
 //
 // Returns:
 //   - []T: The list of solutions. Nil if there are no solutions.
-func (fos ErrOrSol[T]) Sols() []T {
-	if len(fos.sols) == 0 {
+func (eos ErrOrSol[T]) Sols() []T {
+	if eos.sols == nil {
 		return nil
 	}
 
-	sols := make([]T, len(fos.sols))
-	copy(sols, fos.sols)
-
+	sols := eos.sols.Build()
 	return sols
 }
 
-// Reset resets the evaluator to its initial state; allowing reuse. Does
-// nothing if the receiver is nil.
-func (fos *ErrOrSol[T]) Reset() {
-	if fos == nil {
+// Reset resets the evaluator to its initial state; allowing reuse.
+func (eos *ErrOrSol[T]) Reset() {
+	if eos == nil {
 		return
 	}
 
-	if len(fos.errs) > 0 {
-		for i := 0; i < len(fos.errs); i++ {
-			fos.errs[i] = nil
-		}
+	eos.errs.Reset()
+	eos.sols.Reset()
 
-		fos.errs = fos.errs[:0]
-	}
-
-	if len(fos.sols) > 0 {
-		for i := 0; i < len(fos.sols); i++ {
-			fos.sols[i] = *new(T)
-		}
-
-		fos.sols = fos.sols[:0]
-	}
-
-	fos.level = 0
+	eos.errs = New[error]()
+	eos.sols = nil
 }

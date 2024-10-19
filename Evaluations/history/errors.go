@@ -5,6 +5,10 @@ import (
 )
 
 var (
+	// ErrHistoryDone is an error that is returned when the history is done.
+	//
+	// Format:
+	//   "history is done"
 	ErrHistoryDone error
 )
 

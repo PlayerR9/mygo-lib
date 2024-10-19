@@ -9,7 +9,7 @@ var (
 	// DefaultErr is the default error that is returned when an error is not provided.
 	//
 	// Format:
-	//   something went wrong
+	//   "something went wrong"
 	DefaultErr error
 )
 

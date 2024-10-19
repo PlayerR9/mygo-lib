@@ -2,23 +2,13 @@ package errors
 
 import (
 	"errors"
-	"fmt"
 )
 
-type ErrPanic struct {
-	value any
-}
-
-func (e ErrPanic) Error() string {
-	return fmt.Sprintf("panic: %v", e.value)
-}
-
-func NewErrPanic(value any) error {
-	return &ErrPanic{
-		value: value,
-	}
-}
-
+// try is a utility function that tries to execute a function and returns an error if one occurs.
+//
+// Parameters:
+//   - err: The error pointer. Assumes it is not nil.
+//   - fn: The function to execute. Assumes it is not nil.
 func try(err *error, fn func()) {
 	defer func() {
 		r := recover()
@@ -39,6 +29,13 @@ func try(err *error, fn func()) {
 	fn()
 }
 
+// Try executes a panicing function and returns an error if one occurs.
+//
+// Parameters:
+//   - fn: The function to execute.
+//
+// Returns:
+//   - error: The error if one occurs. Otherwise, nil.
 func Try(fn func()) error {
 	if fn == nil {
 		return nil
