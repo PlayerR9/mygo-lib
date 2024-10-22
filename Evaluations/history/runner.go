@@ -72,9 +72,7 @@ func ExecuteUntil[E Event](subject Subject[E], history *History[E]) ([]*History[
 		nexts, err := subject.NextEvents()
 		if err != nil {
 			return nil, err
-		}
-
-		if len(nexts) == 0 {
+		} else if subject.HasError() || len(nexts) == 0 {
 			break
 		}
 
