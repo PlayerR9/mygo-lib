@@ -3,6 +3,7 @@ package history
 import (
 	"iter"
 
+	"github.com/PlayerR9/mygo-lib/common"
 	gers "github.com/PlayerR9/mygo-lib/errors"
 )
 
@@ -53,7 +54,7 @@ func (h History[E]) Copy() *History[E] {
 //   - error: An error if the receiver is nil.
 func (h *History[E]) AddEvent(event E) error {
 	if h == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	h.timeline = append(h.timeline, event)
@@ -98,7 +99,7 @@ func (h *History[E]) Event() iter.Seq[E] {
 //   - any other error: if the subject is nil or any error returned by the subject.ApplyEvent() method.
 func (h *History[E]) ApplyOnce(subject Subject[E]) (bool, error) {
 	if h == nil {
-		return false, gers.ErrNilReceiver
+		return false, common.ErrNilReceiver
 	} else if subject == nil {
 		return false, gers.NewBadParameter("subject", "not be nil")
 	}

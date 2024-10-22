@@ -4,7 +4,7 @@ import (
 	"io"
 
 	assert "github.com/PlayerR9/go-verify"
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 var (
@@ -69,7 +69,7 @@ func (w *Writer) WriteBytes(data []byte) error {
 	}
 
 	if w == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	assert.Cond(w.w != nil, "w must not be nil")
@@ -94,7 +94,7 @@ func (w *Writer) WriteBytes(data []byte) error {
 //   - any other error returned by the underlying io.Writer.
 func (w *Writer) WriteNewline() error {
 	if w == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	assert.Cond(w.w != nil, "w must not be nil")

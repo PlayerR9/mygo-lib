@@ -4,7 +4,7 @@ import (
 	"slices"
 
 	assert "github.com/PlayerR9/go-verify"
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 // Rank is a rank solution.
@@ -36,7 +36,7 @@ func New[T any]() *Rank[T] {
 //   - error: An error if the receiver is nil.
 func (r *Rank[T]) Add(rank int, sol T) error {
 	if r == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	assert.Cond(r.buckets != nil, "r.buckets must not be nil")

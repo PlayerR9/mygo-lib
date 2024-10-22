@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	assert "github.com/PlayerR9/go-verify"
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 // SeenSet is a set of seen elements.
@@ -57,7 +57,7 @@ func NewSeenSet[K comparable]() *SeenSet[K] {
 //   - errors.ErrNilReceiver: If the receiver is nil.
 func (s *SeenSet[K]) See(k K) error {
 	if s == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	assert.Cond(s.seen != nil, "s.seen must not be nil")

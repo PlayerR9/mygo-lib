@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 var (
@@ -104,7 +104,7 @@ func NewStackFromSlice[T any](slice []T) *Stack[T] {
 //   - errors.ErrNilReceiver: If the receiver is nil.
 func (s *Stack[T]) Push(elem T) error {
 	if s == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	s.elems = append(s.elems, elem)
@@ -128,7 +128,7 @@ func (s *Stack[T]) PushMany(elems []T) error {
 	if len(elems) == 0 {
 		return nil
 	} else if s == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	slices.Reverse(elems)

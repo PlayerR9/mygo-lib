@@ -1,7 +1,7 @@
 package slices
 
 import (
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 // Builder is a slice builder.
@@ -19,7 +19,7 @@ type Builder[T any] struct {
 //   - error: An error if the receiver is nil.
 func (b *Builder[T]) Append(elem T) error {
 	if b == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	b.slice = append(b.slice, elem)
@@ -49,10 +49,12 @@ func (b *Builder[T]) Reset() {
 	}
 
 	if len(b.slice) > 0 {
-		for i := 0; i < len(b.slice); i++ {
-			b.slice[i] = *new(T)
+		zero := *new(T)
+
+		for i := range b.slice {
+			b.slice[i] = zero
 		}
 
-		b.slice = b.slice[:0]
+		b.slice = nil
 	}
 }

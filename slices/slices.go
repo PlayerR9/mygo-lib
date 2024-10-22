@@ -1,5 +1,33 @@
 package slices
 
+func TrimNils[T any](slice []*T) []*T {
+	if len(slice) == 0 {
+		return nil
+	}
+
+	var count int
+
+	for _, elem := range slice {
+		if elem != nil {
+			count++
+		}
+	}
+
+	if count == 0 {
+		return nil
+	}
+
+	result := make([]*T, 0, count)
+
+	for _, elem := range slice {
+		if elem != nil {
+			result = append(result, elem)
+		}
+	}
+
+	return result
+}
+
 // Predicate is a type of function that checks whether an element
 // satisfies a given condition.
 //

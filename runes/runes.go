@@ -5,7 +5,7 @@ import (
 	"slices"
 	"unicode/utf8"
 
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 // BytesToUtf8 converts a byte slice to a slice of utf-8 encoded runes. This function stops
@@ -123,7 +123,7 @@ func IndicesOf(data []rune, sep rune) []int {
 //   - errors.ErrAfter: If the characters are not valid UTF-8.
 func NormalizeRunes(chars []rune, tab_size int) ([]rune, error) {
 	if tab_size <= 0 {
-		return chars, gers.NewBadParameter("tab_size", fmt.Sprintf("be positive, got %d instead", tab_size))
+		return chars, common.NewErrBadParameter("tab_size", fmt.Sprintf("must be positive, got %d", tab_size))
 	}
 
 	if len(chars) == 0 {

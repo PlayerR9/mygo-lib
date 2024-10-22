@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	assert "github.com/PlayerR9/go-verify"
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 // ErrOrSol is an evaluator that allows to separate errors from solutions
@@ -62,7 +62,7 @@ func (eos ErrOrSol[T]) AddErr(rank int, e error) bool {
 //   - error: An error if the receiver is nil.
 func (eos *ErrOrSol[T]) AddSol(rank int, sol T) error {
 	if eos == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	if eos.sols == nil {

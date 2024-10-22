@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	assert "github.com/PlayerR9/go-verify"
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 var (
@@ -141,7 +141,7 @@ func (rs RefusableStack[T]) Peek() (T, error) {
 //   - ErrNotAccepted: If the stack was not accepted (or refused).
 func (rs *RefusableStack[T]) Push(elem T) error {
 	if rs == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	err := rs.Validate()

@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 // OrderedSet is an ordered set in ascending order.
@@ -83,7 +83,7 @@ func NewOrderedSetFromSlice[K cmp.Ordered](slice []K) *OrderedSet[K] {
 //   - errors.ErrNilReceiver: If the receiver is nil.
 func (s *OrderedSet[K]) Add(k K) error {
 	if s == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	pos, ok := slices.BinarySearch(s.elems, k)
@@ -108,7 +108,7 @@ func (s *OrderedSet[K]) AddMany(ks ...K) error {
 	if len(ks) == 0 {
 		return nil
 	} else if s == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	for _, k := range ks {
@@ -158,7 +158,7 @@ func (s *OrderedSet[K]) Merge(other *OrderedSet[K]) error {
 	if other == nil || other.IsEmpty() {
 		return nil
 	} else if s == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	for _, elem := range other.elems {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 var (
@@ -84,7 +84,7 @@ func NewQueueWithValues[T any](elems []T) *Queue[T] {
 //   - error: An error if the receiver is nil.
 func (q *Queue[T]) Enqueue(elem T) error {
 	if q == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	q.elems = append(q.elems, elem)
@@ -103,7 +103,7 @@ func (q *Queue[T]) EnqueueMany(elems []T) error {
 	if len(elems) == 0 {
 		return nil
 	} else if q == nil {
-		return gers.ErrNilReceiver
+		return common.ErrNilReceiver
 	}
 
 	q.elems = append(q.elems, elems...)
