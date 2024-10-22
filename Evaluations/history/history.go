@@ -112,7 +112,7 @@ func (h *History[E]) ApplyOnce(subject Subject[E]) (bool, error) {
 
 	is_done, err := subject.ApplyEvent(event)
 	if err != nil {
-		return false, err
+		return true, err
 	}
 
 	return is_done, nil

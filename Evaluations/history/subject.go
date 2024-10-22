@@ -25,10 +25,4 @@ type Subject[E Event] interface {
 	//   - []E: The next events in the subject.
 	//   - error: An error if the next events could not be returned.
 	NextEvents() ([]E, error)
-
-	// HasError checks whether the subject has an error.
-	//
-	// Returns:
-	//   - bool: True if the subject has an error, false otherwise.
-	HasError() bool
 }
