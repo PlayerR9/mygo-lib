@@ -1,10 +1,9 @@
 package slices
 
-import (
-	"github.com/PlayerR9/mygo-lib/common"
-)
+import "github.com/PlayerR9/mygo-lib/common"
 
-// Builder is a slice builder.
+// Builder is a builder for slices. While this is normally not needed, it can have
+// some uses when making many slices one after the other.
 type Builder[T any] struct {
 	// slice is the slice being built.
 	slice []T
@@ -30,7 +29,7 @@ func (b *Builder[T]) Append(elem T) error {
 // Build builds the slice being built.
 //
 // Returns:
-//   - []T: The slice being built.
+//   - []T: The slice being built. Nil if no elements were appended.
 func (b Builder[T]) Build() []T {
 	if len(b.slice) == 0 {
 		return nil

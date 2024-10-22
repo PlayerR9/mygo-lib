@@ -1,33 +1,5 @@
 package slices
 
-func TrimNils[T any](slice []*T) []*T {
-	if len(slice) == 0 {
-		return nil
-	}
-
-	var count int
-
-	for _, elem := range slice {
-		if elem != nil {
-			count++
-		}
-	}
-
-	if count == 0 {
-		return nil
-	}
-
-	result := make([]*T, 0, count)
-
-	for _, elem := range slice {
-		if elem != nil {
-			result = append(result, elem)
-		}
-	}
-
-	return result
-}
-
 // Predicate is a type of function that checks whether an element
 // satisfies a given condition.
 //
@@ -38,7 +10,7 @@ func TrimNils[T any](slice []*T) []*T {
 //   - bool: True if the element satisfies the condition, false otherwise.
 type Predicate[T any] func(elem T) bool
 
-// ApplyFilter applies a predicate function on a list of elements;
+// Filter applies a predicate function on a slice of elements;
 // keeping only those elements that satisfy the predicate.
 //
 // Parameters:
@@ -48,30 +20,37 @@ type Predicate[T any] func(elem T) bool
 // Returns:
 //   - []T: the list of elements that satisfy the predicate.
 //
-// Behaviors:
-//   - If the list is empty or the predicate is nil, returns nil.
-//
-// WARNING: This function modifies the original list if there is at least
-// one element that does not satisfy the predicate. Make sure to copy the
-// list before calling this function if you want to keep the original list.
-func ApplyFilter[T any](elems []T, f Predicate[T]) []T {
-	if len(elems) == 0 || f == nil {
+// Behavior:
+//   - If the list is empty, the predicate is nil, or there is no element
+//     that satisfies the predicate, returns nil.
+//   - WARNING: As a side-effect, the original list will be modified if there
+//     is at least one element that satisfies the predicate and one that does
+//     not.
+func Filter[T any](slice []T, p Predicate[T]) []T {
+	if len(slice) == 0 || p == nil {
 		return nil
 	}
 
 	var top int
 
-	for i := 0; i < len(elems); i++ {
-		if f(elems[i]) {
-			elems[top] = elems[i]
+	for i := range slice {
+		ok := p(slice[i])
+		if ok {
+			slice[top] = slice[i]
 			top++
 		}
 	}
 
-	return elems[:top:top]
+	if top == 0 {
+		return nil
+	}
+
+	slice = slice[:top:top]
+
+	return slice
 }
 
-// ApplyReject applies a predicate function on a list of elements;
+// Reject applies a predicate function on a slice of elements;
 // keeping only those elements that do not satisfy the predicate.
 //
 // Parameters:
@@ -81,45 +60,53 @@ func ApplyFilter[T any](elems []T, f Predicate[T]) []T {
 // Returns:
 //   - []T: the list of elements that do not satisfy the predicate.
 //
-// Behaviors:
+// Behavior:
 //   - If the list is empty or the predicate is nil, returns nil.
-//
-// WARNING: This function modifies the original list if there is at least
-// one element that satisfies the predicate. Make sure to copy the
-// list before calling this function if you want to keep the original list.
-func ApplyReject[T any](elems []T, f Predicate[T]) []T {
-	if len(elems) == 0 || f == nil {
+//   - WARNING: As a side-effect, the original list will be modified if there
+//     is at least one element that satisfies the predicate and one that does
+//     not.
+func Reject[T any](slice []T, p Predicate[T]) []T {
+	if len(slice) == 0 || p == nil {
 		return nil
 	}
 
 	var top int
 
-	for i := 0; i < len(elems); i++ {
-		if !f(elems[i]) {
-			elems[top] = elems[i]
+	for i := range slice {
+		ok := p(slice[i])
+		if !ok {
+			slice[top] = slice[i]
 			top++
 		}
 	}
 
-	return elems[:top:top]
+	if top == 0 {
+		return nil
+	}
+
+	slice = slice[:top:top]
+
+	return slice
 }
 
-// RejectNils removes all nil elements from the slices if they implement the IsNil() method.
-//
-// IsNil must return false if the element is nil, otherwise true.
+// RejectNils works like Reject but returns nil if the list is empty. However,
+// unlike Reject, it has no side-effects.
 //
 // Parameters:
-//   - elems: The elements to remove nils from.
+//   - slice: the list of elements to filter.
 //
 // Returns:
-//   - []T: The elements without nils. Nil if all the elements are nil or no elements were specified.
-func RejectNils[T interface {
-	IsNil() bool
-}](elems []T) []T {
+//   - []*T: the list of elements that do not satisfy the predicate. Nil if the
+//     list is empty or all elements are nil.
+func RejectNils[T any](slice []*T) []*T {
+	if len(slice) == 0 {
+		return nil
+	}
+
 	var count int
 
-	for _, elem := range elems {
-		if !elem.IsNil() {
+	for i := range slice {
+		if slice[i] != nil {
 			count++
 		}
 	}
@@ -128,13 +115,13 @@ func RejectNils[T interface {
 		return nil
 	}
 
-	new_elems := make([]T, 0, count)
+	new_slice := make([]*T, 0, count)
 
-	for _, elem := range elems {
-		if !elem.IsNil() {
-			new_elems = append(new_elems, elem)
+	for i := range slice {
+		if slice[i] != nil {
+			new_slice = append(new_slice, slice[i])
 		}
 	}
 
-	return new_elems
+	return new_slice
 }

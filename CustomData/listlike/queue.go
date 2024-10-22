@@ -1,77 +1,61 @@
 package listlike
 
 import (
-	"errors"
-	"fmt"
-	"strings"
-
 	"github.com/PlayerR9/mygo-lib/common"
 )
 
-var (
-	// ErrEmptyQueue is an error that is returned when the queue is empty.
-	//
-	// Format:
-	//
-	//   "empty queue"
-	ErrEmptyQueue error
-)
-
-func init() {
-	ErrEmptyQueue = errors.New("empty queue")
-}
-
-// Queue is a queue.
+// Queue is a simple implementation of a queue.
 type Queue[T any] struct {
-	// elems is the list of elements in the queue.
-	elems []T
+	// slice is the internal slice.
+	slice []T
 }
 
 // Size implements the Lister interface.
-func (q Queue[T]) Size() int {
-	return len(q.elems)
+func (s Queue[T]) Size() int {
+	return len(s.slice)
 }
 
 // IsEmpty implements the Lister interface.
-func (q Queue[T]) IsEmpty() bool {
-	return len(q.elems) == 0
+func (s Queue[T]) IsEmpty() bool {
+	return len(s.slice) == 0
 }
 
-// IsNil implements the Lister interface.
-func (q *Queue[T]) IsNil() bool {
-	return q == nil
-}
-
-// String implements the fmt.Stringer interface.
-func (q Queue[T]) String() string {
-	elems := make([]string, 0, len(q.elems))
-
-	for _, elem := range q.elems {
-		elems = append(elems, fmt.Sprint(elem))
+// Reset implements the Lister interface.
+func (s *Queue[T]) Reset() {
+	if s == nil {
+		return
 	}
 
-	return "Queue[ <- " + strings.Join(elems, " <- ") + " <- ]"
+	if len(s.slice) > 0 {
+		zero := *new(T)
+
+		for i := range s.slice {
+			s.slice[i] = zero
+		}
+
+		s.slice = nil
+	}
 }
 
-// NewQueue returns a new queue.
-//
-// Returns:
-//   - *Queue[T]: The new queue. Never returns nil.
-//
-// This is just for convenience since it does the same as:
+// NewQueue creates a new queue from a slice. It is also possible
+// use:
 //
 //	var queue Queue[T]
-func NewQueue[T any]() *Queue[T] {
-	return &Queue[T]{}
-}
-
-// NewQueueWithValues returns a new queue with the given values.
+//
+// To create an empty queue that is not a pointer.
+//
+// Parameters:
+//   - elems: The elements to add to the queue.
 //
 // Returns:
 //   - *Queue[T]: The new queue. Never returns nil.
-func NewQueueWithValues[T any](elems []T) *Queue[T] {
+func NewQueue[T any](elems []T) *Queue[T] {
+	if len(elems) == 0 {
+		return &Queue[T]{}
+	}
+
 	return &Queue[T]{
-		elems: elems,
+		slice: elems,
 	}
 }
 
@@ -82,47 +66,67 @@ func NewQueueWithValues[T any](elems []T) *Queue[T] {
 //
 // Returns:
 //   - error: An error if the receiver is nil.
-func (q *Queue[T]) Enqueue(elem T) error {
-	if q == nil {
+func (s *Queue[T]) Enqueue(elem T) error {
+	if s == nil {
 		return common.ErrNilReceiver
 	}
 
-	q.elems = append(q.elems, elem)
+	s.slice = append(s.slice, elem)
 
 	return nil
 }
 
-// EnqueueMany adds multiple elements to the queue.
+// EnqueueMany adds multiple elements to the queue. If it has at least
+// one element but the receiver is nil, an error is returned.
 //
 // Parameters:
 //   - elems: The elements to add.
 //
 // Returns:
 //   - error: An error if the receiver is nil.
-func (q *Queue[T]) EnqueueMany(elems []T) error {
+func (s *Queue[T]) EnqueueMany(elems []T) error {
 	if len(elems) == 0 {
 		return nil
-	} else if q == nil {
+	} else if s == nil {
 		return common.ErrNilReceiver
 	}
 
-	q.elems = append(q.elems, elems...)
+	s.slice = append(s.slice, elems...)
 
 	return nil
 }
 
-// Dequeue removes an element from the queue.
+// Dequeue removes the first element from the queue.
 //
 // Returns:
 //   - T: The element that was removed.
-//   - error: An error if the receiver is nil or the queue is empty.
-func (q *Queue[T]) Dequeue() (T, error) {
-	if q == nil || len(q.elems) == 0 {
+//   - error: An error if the element could not be removed from the queue.
+//
+// Errors:
+//   - ErrEmptyQueue: If the queue is empty.
+func (s *Queue[T]) Dequeue() (T, error) {
+	if s == nil || len(s.slice) == 0 {
 		return *new(T), ErrEmptyQueue
 	}
 
-	elem := q.elems[0]
-	q.elems = q.elems[1:]
+	elem := s.slice[0]
+	s.slice = s.slice[1:]
 
 	return elem, nil
+}
+
+// First returns the element at the start of the queue.
+//
+// Returns:
+//   - T: The element at the start of the queue.
+//   - error: An error if the queue is empty.
+//
+// Errors:
+//   - ErrEmptyQueue: If the queue is empty.
+func (s Queue[T]) First() (T, error) {
+	if len(s.slice) == 0 {
+		return *new(T), ErrEmptyQueue
+	}
+
+	return s.slice[len(s.slice)-1], nil
 }
