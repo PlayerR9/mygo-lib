@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"slices"
 
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 type Iterator[E Event, S Subject[E]] struct {
@@ -33,7 +33,7 @@ type Iterator[E Event, S Subject[E]] struct {
 //     function and then applying events to the subject. Never returns nil.
 func NewIterator[E Event, S Subject[E]](init_fn func() (S, error)) (*Iterator[E, S], error) {
 	if init_fn == nil {
-		return nil, gers.NewBadParameter("init_fn", "not be nil")
+		return nil, common.NewErrNilParam("init_fn")
 	}
 
 	h := NewHistory[E]()

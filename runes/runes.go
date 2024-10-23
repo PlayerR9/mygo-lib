@@ -1,7 +1,10 @@
 package runes
 
 import (
+	"slices"
 	"unicode/utf8"
+
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 // BytesToUtf8 converts a byte slice to a slice of runes.
@@ -90,4 +93,102 @@ func Repeat(char rune, count int) []rune {
 	}
 
 	return slice
+}
+
+// NormalizeNewlines takes a slice of runes and normalizes any instances of "\r\n" into "\n".
+//
+// Parameters:
+//   - chars: The characters to normalize.
+//
+// Returns:
+//   - error: An error if normalization failed.
+//
+// Errors:
+//   - ErrNotAsExpected: If '\r' is not followed by '\n'.
+func normalizeNewlines(chars *[]rune) error {
+	indices := IndicesOf(*chars, '\r')
+	if len(indices) == 0 {
+		return nil
+	}
+
+	next_idx := indices[len(indices)-1] + 1
+
+	if next_idx >= len(*chars) {
+		return NewErrNotAsExpected(next_idx, '\n', nil)
+	} else if (*chars)[next_idx] != '\n' {
+		return NewErrNotAsExpected(next_idx, '\n', &(*chars)[next_idx])
+	}
+
+	*chars = slices.Delete(*chars, next_idx-1, next_idx)
+
+	var offset int
+
+	for _, idx := range indices[:len(indices)-1] {
+		idx += 1 - offset
+		char := (*chars)[idx]
+
+		if char != '\n' {
+			return NewErrNotAsExpected(idx, '\n', &char)
+		}
+
+		*chars = slices.Delete(*chars, idx-1, idx)
+		offset++
+	}
+
+	return nil
+}
+
+// normalizeTabs replaces all tabs in chars with repl.
+//
+// The function has no side effects other than modifying chars.
+func normalizeTabs(chars *[]rune, repl []rune) {
+	indices := IndicesOf(*chars, '\t')
+	if len(indices) == 0 {
+		return
+	}
+
+	offset := len(repl) - 1
+	var delta int
+
+	for _, idx := range indices {
+		idx -= delta
+
+		*chars = slices.Delete(*chars, idx, idx+1)
+		*chars = slices.Insert(*chars, idx, repl...)
+
+		delta -= offset
+	}
+}
+
+// Normalize normalizes the runes in chars by replacing all "\r\n" with "\n" and
+// all "\t" with the appropriate number of spaces depending on tab_size.
+//
+// The function normalizes the runes in place and has no other side effects.
+//
+// Parameters:
+//   - chars: The characters to normalize.
+//   - tab_size: The size of the tab stop.
+//
+// Returns:
+//   - error: An error if normalization fails.
+//
+// Errors:
+//   - common.ErrBadParam: If tab_size is not positive.
+func Normalize(chars *[]rune, tab_size int) error {
+	if chars == nil || len(*chars) == 0 {
+		return nil
+	} else if tab_size <= 0 {
+		return common.NewErrBadParam("tab_size", "must be positive")
+	}
+
+	err := normalizeNewlines(chars)
+	if err != nil {
+		return err
+	}
+
+	repl := Repeat(' ', tab_size)
+
+	normalizeTabs(chars, repl)
+
+	return nil
 }

@@ -1,9 +1,6 @@
 package runes
 
-import (
-	"strconv"
-)
-
+/*
 // QuoteRunes returns a slice of quoted strings from a slice of runes.
 //
 // Parameters:
@@ -47,3 +44,4 @@ func RunesToStrings(slice []rune) []string {
 
 	return elems
 }
+*/

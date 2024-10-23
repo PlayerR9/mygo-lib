@@ -1,41 +1,6 @@
 package runes
 
-import (
-	"strconv"
-	"strings"
-)
-
-// ErrBadEncoding occurs when some byte is not valid utf-8.
-type ErrBadEncoding struct {
-	// Idx is the index of the byte that is not valid utf-8.
-	Idx int
-}
-
-// Error implements the error interface.
-func (e ErrBadEncoding) Error() string {
-	return "byte " + strconv.Itoa(e.Idx) + " is not valid utf-8"
-}
-
-// NewErrBadEncoding creates a new ErrBadEncoding error.
-//
-// Parameters:
-//   - idx: The index of the byte that is not valid utf-8.
-//
-// Returns:
-//   - error: The new error. Never returns nil.
-//
-// Format:
-//
-//	"byte <idx> is not valid utf-8"
-//
-// Where:
-//   - <idx>: The index of the byte that is not valid utf-8.
-func NewErrBadEncoding(idx int) error {
-	return &ErrBadEncoding{
-		Idx: idx,
-	}
-}
-
+/*
 // ErrNotAsExpected is an error that is returned when an element is not as expected.
 type ErrNotAsExpected struct {
 	// Kind is the kind of the expected elements.
@@ -154,3 +119,4 @@ func NewErrAfter(previous rune, inner error) error {
 func (e ErrAfter) Unwrap() error {
 	return e.Inner
 }
+*/

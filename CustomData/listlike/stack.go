@@ -6,20 +6,26 @@ import (
 	"github.com/PlayerR9/mygo-lib/common"
 )
 
-// Stack is a simple implementation of a stack.
+// Stack is a simple implementation of a stack. An empty stack can either be
+// created with the `var stack Stack[T]` syntax or with the `new(Stack[T])`
+// constructor.
 type Stack[T any] struct {
 	// slice is the internal slice.
 	slice []T
 }
 
 // Size implements the Lister interface.
-func (s Stack[T]) Size() int {
+func (s *Stack[T]) Size() int {
+	if s == nil {
+		return 0
+	}
+
 	return len(s.slice)
 }
 
 // IsEmpty implements the Lister interface.
-func (s Stack[T]) IsEmpty() bool {
-	return len(s.slice) == 0
+func (s *Stack[T]) IsEmpty() bool {
+	return s == nil || len(s.slice) == 0
 }
 
 // Reset implements the Lister interface.
@@ -29,22 +35,12 @@ func (s *Stack[T]) Reset() {
 	}
 
 	if len(s.slice) > 0 {
-		zero := *new(T)
-
-		for i := range s.slice {
-			s.slice[i] = zero
-		}
-
+		clear(s.slice)
 		s.slice = nil
 	}
 }
 
-// NewStack creates a new stack from a slice. It is also possible
-// use:
-//
-//	var stack Stack[T]
-//
-// To create an empty stack that is not a pointer.
+// NewStack creates a new stack from a slice.
 //
 // Parameters:
 //   - elems: The elements to add to the stack.
@@ -133,8 +129,8 @@ func (s *Stack[T]) Pop() (T, error) {
 //
 // Errors:
 //   - ErrEmptyStack: If the stack is empty.
-func (s Stack[T]) Peek() (T, error) {
-	if len(s.slice) == 0 {
+func (s *Stack[T]) Peek() (T, error) {
+	if s == nil || len(s.slice) == 0 {
 		return *new(T), ErrEmptyStack
 	}
 

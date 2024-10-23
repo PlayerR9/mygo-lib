@@ -4,45 +4,40 @@ import (
 	"github.com/PlayerR9/mygo-lib/common"
 )
 
-// Queue is a simple implementation of a queue.
+// Queue is a simple implementation of a queue. An empty queue can either be
+// created with the `var queue Queue[T]` syntax or with the `new(Queue[T])`
 type Queue[T any] struct {
 	// slice is the internal slice.
 	slice []T
 }
 
 // Size implements the Lister interface.
-func (s Queue[T]) Size() int {
-	return len(s.slice)
+func (q *Queue[T]) Size() int {
+	if q == nil {
+		return 0
+	}
+
+	return len(q.slice)
 }
 
 // IsEmpty implements the Lister interface.
-func (s Queue[T]) IsEmpty() bool {
-	return len(s.slice) == 0
+func (q *Queue[T]) IsEmpty() bool {
+	return q == nil || len(q.slice) == 0
 }
 
 // Reset implements the Lister interface.
-func (s *Queue[T]) Reset() {
-	if s == nil {
+func (q *Queue[T]) Reset() {
+	if q == nil {
 		return
 	}
 
-	if len(s.slice) > 0 {
-		zero := *new(T)
-
-		for i := range s.slice {
-			s.slice[i] = zero
-		}
-
-		s.slice = nil
+	if len(q.slice) > 0 {
+		clear(q.slice)
+		q.slice = nil
 	}
 }
 
-// NewQueue creates a new queue from a slice. It is also possible
-// use:
-//
-//	var queue Queue[T]
-//
-// To create an empty queue that is not a pointer.
+// NewQueue creates a new queue from a slice.
 //
 // Parameters:
 //   - elems: The elements to add to the queue.
@@ -66,12 +61,12 @@ func NewQueue[T any](elems []T) *Queue[T] {
 //
 // Returns:
 //   - error: An error if the receiver is nil.
-func (s *Queue[T]) Enqueue(elem T) error {
-	if s == nil {
+func (q *Queue[T]) Enqueue(elem T) error {
+	if q == nil {
 		return common.ErrNilReceiver
 	}
 
-	s.slice = append(s.slice, elem)
+	q.slice = append(q.slice, elem)
 
 	return nil
 }
@@ -84,14 +79,14 @@ func (s *Queue[T]) Enqueue(elem T) error {
 //
 // Returns:
 //   - error: An error if the receiver is nil.
-func (s *Queue[T]) EnqueueMany(elems []T) error {
+func (q *Queue[T]) EnqueueMany(elems []T) error {
 	if len(elems) == 0 {
 		return nil
-	} else if s == nil {
+	} else if q == nil {
 		return common.ErrNilReceiver
 	}
 
-	s.slice = append(s.slice, elems...)
+	q.slice = append(q.slice, elems...)
 
 	return nil
 }
@@ -104,13 +99,13 @@ func (s *Queue[T]) EnqueueMany(elems []T) error {
 //
 // Errors:
 //   - ErrEmptyQueue: If the queue is empty.
-func (s *Queue[T]) Dequeue() (T, error) {
-	if s == nil || len(s.slice) == 0 {
+func (q *Queue[T]) Dequeue() (T, error) {
+	if q == nil || len(q.slice) == 0 {
 		return *new(T), ErrEmptyQueue
 	}
 
-	elem := s.slice[0]
-	s.slice = s.slice[1:]
+	elem := q.slice[0]
+	q.slice = q.slice[1:]
 
 	return elem, nil
 }
@@ -123,10 +118,10 @@ func (s *Queue[T]) Dequeue() (T, error) {
 //
 // Errors:
 //   - ErrEmptyQueue: If the queue is empty.
-func (s Queue[T]) First() (T, error) {
-	if len(s.slice) == 0 {
+func (q *Queue[T]) First() (T, error) {
+	if q == nil || len(q.slice) == 0 {
 		return *new(T), ErrEmptyQueue
 	}
 
-	return s.slice[len(s.slice)-1], nil
+	return q.slice[len(q.slice)-1], nil
 }

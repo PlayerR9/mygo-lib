@@ -5,7 +5,7 @@ import (
 	"iter"
 	"log"
 
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	common "github.com/PlayerR9/mygo-lib/common"
 )
 
 // LogSeq prints a title and a sequence of strings. Each element of the sequence is
@@ -31,7 +31,7 @@ import (
 //   - To add an empty line at the end, use _ = yield("\n") in seq.
 func LogSeq(logger *log.Logger, title string, seq iter.Seq[string]) error {
 	if logger == nil {
-		return gers.NewBadParameter("logger", "not be nil")
+		return common.NewErrNilParam("logger")
 	}
 
 	if title != "" {

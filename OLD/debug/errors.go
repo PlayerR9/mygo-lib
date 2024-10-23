@@ -3,7 +3,7 @@ package debug
 import (
 	"fmt"
 
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	gers "github.com/PlayerR9/mygo-lib/OLD/errors"
 	"github.com/dustin/go-humanize"
 )
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	assert "github.com/PlayerR9/go-verify"
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 // Align aligns a subject with a history. Does nothing if the history is already aligned or nil.
@@ -23,7 +23,7 @@ func Align[E Event](subject Subject[E], history *History[E]) error {
 	}
 
 	if subject == nil {
-		return gers.NewBadParameter("subject", "not be nil")
+		return common.NewErrNilParam("subject")
 	}
 
 	assert.Cond(history.arrow <= len(history.timeline), "history.arrow is out of range")
@@ -55,11 +55,11 @@ func Align[E Event](subject Subject[E], history *History[E]) error {
 //     history could be aligned.
 func ExecuteUntil[E Event](subject Subject[E], history *History[E]) ([]*History[E], error) {
 	if subject == nil {
-		return nil, gers.NewBadParameter("subject", "not be nil")
+		return nil, common.NewErrNilParam("subject")
 	}
 
 	if history == nil {
-		return nil, gers.NewBadParameter("history", "not be nil")
+		return nil, common.NewErrNilParam("history")
 	}
 
 	err := Align(subject, history)

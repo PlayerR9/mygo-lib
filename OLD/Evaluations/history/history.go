@@ -4,7 +4,6 @@ import (
 	"iter"
 
 	"github.com/PlayerR9/mygo-lib/common"
-	gers "github.com/PlayerR9/mygo-lib/errors"
 )
 
 // Event is an event that can be applied to a subject.
@@ -101,7 +100,7 @@ func (h *History[E]) ApplyOnce(subject Subject[E]) (bool, error) {
 	if h == nil {
 		return false, common.ErrNilReceiver
 	} else if subject == nil {
-		return false, gers.NewBadParameter("subject", "not be nil")
+		return false, common.NewErrNilParam("subject")
 	}
 
 	if h.arrow >= len(h.timeline) {
