@@ -1,5 +1,7 @@
 package common
 
+import "errors"
+
 // ErrAssertFail occurs when an assertion fails.
 type ErrAssertFail struct {
 	// Inner is the error that occurred.
@@ -55,13 +57,35 @@ func (e ErrAssertFail) Unwrap() error {
 //   - ErrAssertFail: If the element is not valid either because it is nil or the Validate method returns an error.
 //
 // Note: This function is intended to be used for implementing the assert.Validater interface.
-func Validate(elem interface{ Validate() error }) {
-	if elem == nil {
-		panic(NewErrAssertFail(ErrNilReceiver))
+// func Validate(elem interface{ Validate() error }) {
+// 	if elem == nil {
+// 		panic(NewErrAssertFail(ErrNilReceiver))
+// 	}
+
+// 	err := elem.Validate()
+// 	if err != nil {
+// 		panic(NewErrAssertFail(err))
+// 	}
+// }
+
+// Assert asserts that the given condition is true. If it is not, a panic is triggered
+// with an ErrAssertFail error.
+//
+// Parameters:
+//   - cond: The condition to assert.
+//   - msg: The error message for the panic.
+func Assert(cond bool, msg string) {
+	if cond {
+		return
 	}
 
-	err := elem.Validate()
-	if err != nil {
-		panic(NewErrAssertFail(err))
+	var inner error
+
+	if msg == "" {
+		panic(NewErrAssertFail(nil))
+	} else {
+		inner = errors.New(msg)
 	}
+
+	panic(NewErrAssertFail(inner))
 }

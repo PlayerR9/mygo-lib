@@ -41,7 +41,7 @@ func (s *RefusableStack[T]) Size() int {
 		return 0
 	}
 
-	common.Validate(s)
+	// common.Validate(s)
 
 	return s.top
 }
@@ -52,7 +52,7 @@ func (s *RefusableStack[T]) IsEmpty() bool {
 		return true
 	}
 
-	common.Validate(s)
+	// common.Validate(s)
 
 	return s.top == 0
 }
@@ -105,7 +105,7 @@ func (s *RefusableStack[T]) Push(elem T) error {
 		return common.ErrNilReceiver
 	}
 
-	common.Validate(s)
+	// common.Validate(s)
 
 	if s.top != len(s.slice) {
 		return ErrCannotPush
@@ -133,7 +133,7 @@ func (s *RefusableStack[T]) PushMany(elems []T) error {
 		return common.ErrNilReceiver
 	}
 
-	common.Validate(s)
+	// common.Validate(s)
 
 	if s.top != len(s.slice) {
 		return ErrCannotPush
@@ -159,7 +159,7 @@ func (s *RefusableStack[T]) Pop() (T, error) {
 		return *new(T), ErrEmptyStack
 	}
 
-	common.Validate(s)
+	// common.Validate(s)
 
 	if s.top == 0 {
 		return *new(T), ErrEmptyStack
@@ -183,7 +183,7 @@ func (s *RefusableStack[T]) Peek() (T, error) {
 		return *new(T), ErrEmptyStack
 	}
 
-	common.Validate(s)
+	// common.Validate(s)
 
 	if s.top == 0 {
 		return *new(T), ErrEmptyStack
@@ -198,7 +198,7 @@ func (s *RefusableStack[T]) Accept() {
 		return
 	}
 
-	common.Validate(s)
+	// common.Validate(s)
 
 	if s.top != len(s.slice) {
 		s.slice = s.slice[:s.top:s.top]
@@ -212,7 +212,7 @@ func (s *RefusableStack[T]) Refuse() {
 		return
 	}
 
-	common.Validate(s)
+	// common.Validate(s)
 
 	s.top = len(s.slice)
 }
@@ -223,7 +223,7 @@ func (s *RefusableStack[T]) RefuseOne() {
 		return
 	}
 
-	common.Validate(s)
+	// common.Validate(s)
 
 	if s.top != len(s.slice) {
 		s.top++
@@ -242,7 +242,7 @@ func (s *RefusableStack[T]) Popped() []T {
 		return nil
 	}
 
-	common.Validate(s)
+	// common.Validate(s)
 
 	if s.top == len(s.slice) {
 		return nil
