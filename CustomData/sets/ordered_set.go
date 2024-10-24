@@ -52,7 +52,7 @@ func (s *OrderedSet[T]) Add(elem T) error {
 }
 
 // AddMany implements the Set interface.
-func (s *OrderedSet[T]) AddMany(elems ...T) error {
+func (s *OrderedSet[T]) AddMany(elems []T) error {
 	if len(elems) == 0 {
 		return nil
 	} else if s == nil {

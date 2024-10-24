@@ -18,32 +18,27 @@ type Pointer interface {
 // Returns:
 //   - []T: The slice of pointer-like types without nils. Nil if all the
 //     elements are nil or no elements were specified.
-func RejectNils[T Pointer](slice []T) []T {
-	if len(slice) == 0 {
-		return nil
+func RejectNils[T Pointer](slice *[]T) {
+	if slice == nil || len(*slice) == 0 {
+		return
 	}
 
-	var count int
+	var top int
 
-	for i := range slice {
-		ok := slice[i].IsNil()
+	for _, elem := range *slice {
+		ok := elem.IsNil()
 		if !ok {
-			count++
+			(*slice)[top] = elem
+			top++
 		}
 	}
 
-	if count == 0 {
-		return nil
+	if top == 0 {
+		clear(*slice)
+		*slice = nil
+
+		return
 	}
 
-	new_slice := make([]T, 0, count)
-
-	for i := range slice {
-		ok := slice[i].IsNil()
-		if !ok {
-			new_slice = append(new_slice, slice[i])
-		}
-	}
-
-	return new_slice
+	*slice = (*slice)[:top:top]
 }
