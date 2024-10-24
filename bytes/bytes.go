@@ -3,7 +3,6 @@ package bytes
 import (
 	"io"
 
-	"github.com/PlayerR9/go-errors/assert"
 	"github.com/PlayerR9/mygo-lib/common"
 )
 
@@ -82,31 +81,11 @@ func (w *MultiWriter) WriteMany(datas ...[]byte) error {
 		total += len(data)
 	}
 
-// WriteMany writes many data to the underlying io.Writer.
-//
-// Parameters:
-//   - datas: The datas to write.
-//
-// Returns:
-//   - error: An error if writing failed.
-//
-// Errors:
-//   - io.ErrShortWrite: If the data is not fully written.
-//   - any other error returned by the underlying io.Writer.
-func (w *Writer) WriteMany(datas ...[]byte) error {
-	var total int
-
-	for _, data := range datas {
-		total += len(data)
-	}
-
 	if total == 0 {
 		return nil
 	} else if w == nil {
 		return io.ErrShortWrite
 	}
-
-	assert.Cond(w.w != nil, "w must not be nil")
 
 	final := make([]byte, total)
 	var prev int
@@ -116,6 +95,12 @@ func (w *Writer) WriteMany(datas ...[]byte) error {
 		prev += len(data)
 	}
 
-	err := w.WriteBytes(final)
+	n, err := w.w.Write(final)
+	w.written += n
+
+	if err == nil && n != total {
+		err = io.ErrShortWrite
+	}
+
 	return err
 }
