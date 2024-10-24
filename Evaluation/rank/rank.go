@@ -7,9 +7,9 @@ import (
 	"github.com/PlayerR9/mygo-lib/common"
 )
 
-// Rank is an ordered set according to rank. An empty rank set can
-// either be created with the `var set Rank[T]` syntax or with the
-// `new(Rank[T])` constructor.
+// Rank is a data structure that holds a list of solutions in order of rank.
+// An empty rank can either be created with the `var rank Rank[T]` syntax
+// or with the `new(Rank[T])` constructor.
 type Rank[T any] struct {
 	// buckets maps ranks to buckets.
 	buckets map[int][]T
@@ -17,59 +17,56 @@ type Rank[T any] struct {
 	// ranks is a sorted list of ranks.
 	ranks []int
 
-	// size is the number of elements in the set.
+	// size is the number of elements in the rank.
 	size int
+
+	// is_ascending is a flag that indicates whether the elements should
+	// be returned in descending or ascending order when methods such as
+	// `Elem` or `Build` are called.
+	is_ascending bool
 }
 
-// Size returns the number of elements in the set.
+// Size returns the number of elements in the rank.
 //
 // Returns:
-//   - int: The number of elements in the set. Never negative.
-//
-// If the receiver is nil, 0 is returned.
-func (s *Rank[T]) Size() int {
-	if s == nil {
-		return 0
-	}
-
-	return s.size
+//   - int: The number of elements in the rank. Never negative.
+func (r Rank[T]) Size() int {
+	return r.size
 }
 
-// IsEmpty returns whether the set is empty.
+// IsEmpty checks whether the rank is empty.
 //
 // Returns:
-//   - bool: True if the set is empty, false otherwise.
-//
-// If the receiver is nil, true is returned.
-func (s *Rank[T]) IsEmpty() bool {
-	return s == nil || s.size == 0
+//   - bool: True if the rank is empty, false otherwise.
+func (r Rank[T]) IsEmpty() bool {
+	return r.size == 0
 }
 
-// Reset resets the set for reuse.
-func (s *Rank[T]) Reset() {
-	if s == nil {
+// Reset resets the rank for reuse.
+func (r *Rank[T]) Reset() {
+	if r == nil {
 		return
 	}
 
-	if len(s.buckets) > 0 {
-		for k, v := range s.buckets {
+	if len(r.buckets) > 0 {
+		for k, v := range r.buckets {
 			clear(v)
-			s.buckets[k] = nil
+			r.buckets[k] = nil
 		}
 
-		clear(s.buckets)
-		s.buckets = nil
+		clear(r.buckets)
+		r.buckets = nil
 	}
 
-	if len(s.ranks) > 0 {
-		clear(s.ranks)
-		s.ranks = nil
+	if len(r.ranks) > 0 {
+		clear(r.ranks)
+		r.ranks = nil
 	}
 
-	s.size = 0
+	r.size = 0
 }
 
-// Add adds an element to the set.
+// Add adds an element to the rank.
 //
 // Parameters:
 //   - rank: The rank of the element.
@@ -77,130 +74,126 @@ func (s *Rank[T]) Reset() {
 //
 // Returns:
 //   - error: An error if the receiver is nil.
-func (s *Rank[T]) Add(rank int, elem T) error {
-	if s == nil {
+func (r *Rank[T]) Add(rank int, elem T) error {
+	if r == nil {
 		return common.ErrNilReceiver
 	}
 
-	if s.buckets == nil {
-		s.buckets = make(map[int][]T)
+	if r.buckets == nil {
+		r.buckets = make(map[int][]T)
 	}
 
-	bucket, ok := s.buckets[rank]
+	bucket, ok := r.buckets[rank]
 	if !ok {
-		s.buckets[rank] = []T{elem}
+		r.buckets[rank] = []T{elem}
 
-		pos, ok := slices.BinarySearch(s.ranks, rank)
+		pos, ok := slices.BinarySearch(r.ranks, rank)
 		if !ok {
-			s.ranks = slices.Insert(s.ranks, pos, rank)
+			r.ranks = slices.Insert(r.ranks, pos, rank)
 		}
 	} else {
-		s.buckets[rank] = append(bucket, elem)
+		r.buckets[rank] = append(bucket, elem)
 	}
 
-	s.size++
+	r.size++
 
 	return nil
 }
 
-// Elem iterates over the elements in the set in rank order, starting from the
-// highest rank. The order of elements within a rank is guaranteed to be
-// the same as the order in which they were added.
+// Elem iterates over the elements in the rank in rank order. The order of elements
+// within a rank is guaranteed to be the same as the order in which they were
+// added. However, the exact order of elements with different ranks is in descending
+// order unless the method `ChangeOrder(true)` is called.
 //
 // Returns:
-//   - iter.Seq2[int, T]: The elements in the set. Never returns nil.
-//
-// If the receiver is nil or the set is empty, an empty sequence is returned.
-func (s *Rank[T]) Elem() iter.Seq2[int, T] {
-	if s == nil || s.size == 0 {
+//   - iter.Seq2[int, T]: The elements in the rank. Never returns nil.
+func (r Rank[T]) Elem() iter.Seq2[int, T] {
+	if r.size == 0 {
 		return func(yield func(int, T) bool) {}
 	}
 
-	return func(yield func(int, T) bool) {
-		for i := len(s.ranks) - 1; i >= 0; i-- {
-			rank := s.ranks[i]
+	var fn iter.Seq2[int, T]
 
-			bucket := s.buckets[rank]
+	if r.is_ascending {
+		fn = func(yield func(int, T) bool) {
+			for _, rank := range r.ranks {
+				bucket := r.buckets[rank]
 
-			for _, elem := range bucket {
-				if !yield(rank, elem) {
-					return
+				for _, elem := range bucket {
+					if !yield(rank, elem) {
+						return
+					}
+				}
+			}
+		}
+	} else {
+		fn = func(yield func(int, T) bool) {
+			for i := len(r.ranks) - 1; i >= 0; i-- {
+				rank := r.ranks[i]
+
+				bucket := r.buckets[rank]
+
+				for _, elem := range bucket {
+					if !yield(rank, elem) {
+						return
+					}
 				}
 			}
 		}
 	}
+
+	return fn
 }
 
-// ReverseElem iterates over the elements in the set in reverse rank order,
-// starting from the lowest rank. The order of elements within a rank is
-// guaranteed to be the same as the order in which they were added.
+// ChangeOrder changes the order in which elements are returned when methods such as
+// `Elem` or `Build` are called.
+//
+// Parameters:
+//   - is_ascending: Whether to return elements in descending or ascending order.
+//     If true, elements are returned in ascending order, otherwise in descending order.
 //
 // Returns:
-//   - iter.Seq2[int, T]: The elements in the set. Never returns nil.
-//
-// If the receiver is nil or the set is empty, an empty sequence is returned.
-func (s *Rank[T]) ReverseElem() iter.Seq2[int, T] {
-	if s == nil || s.size == 0 {
-		return func(yield func(int, T) bool) {}
+//   - error: An error if the receiver is nil.
+func (r *Rank[T]) ChangeOrder(is_ascending bool) error {
+	if r == nil {
+		return common.ErrNilReceiver
 	}
 
-	return func(yield func(int, T) bool) {
-		for _, rank := range s.ranks {
-			bucket := s.buckets[rank]
+	r.is_ascending = is_ascending
 
-			for i := len(bucket) - 1; i >= 0; i-- {
-				if !yield(rank, bucket[i]) {
-					return
-				}
-			}
-		}
-	}
+	return nil
 }
 
-func (s *Rank[T]) Build() []T {
-	if s == nil || s.size == 0 {
+// Build is a more efficent way of calling slices.Collect(r.Elem()).
+//
+// Returns:
+//   - []T: The slice of elements in the rank. Returns nil if the rank is empty.
+func (r Rank[T]) Build() []T {
+	if r.size == 0 {
 		return nil
 	}
 
-	slice := make([]T, 0, s.size)
+	slice := make([]T, 0, r.size)
 
-	for i := len(s.ranks) - 1; i >= 0; i-- {
-		rank := s.ranks[i]
+	if r.is_ascending {
+		for _, rank := range r.ranks {
+			bucket := r.buckets[rank]
 
-		bucket := s.buckets[rank]
+			for i := len(bucket) - 1; i >= 0; i-- {
+				slice = append(slice, bucket[i])
+			}
+		}
+	} else {
+		for i := len(r.ranks) - 1; i >= 0; i-- {
+			rank := r.ranks[i]
 
-		for _, elem := range bucket {
-			slice = append(slice, elem)
+			bucket := r.buckets[rank]
+
+			for _, elem := range bucket {
+				slice = append(slice, elem)
+			}
 		}
 	}
 
 	return slice
-}
-
-// ReverseElem iterates over the elements in the set in reverse rank order,
-// starting from the lowest rank. The order of elements within a rank is
-// guaranteed to be the same as the order in which they were added.
-//
-// Returns:
-//   - iter.Seq2[int, T]: The elements in the set. Never returns nil.
-//
-// If the receiver is nil or the set is empty, an empty sequence is returned.
-func (s *Rank[T]) ReverseBuild() []T {
-	if s == nil || s.size == 0 {
-		return nil
-	}
-
-	slice := make([]T, 0, s.size)
-
-	for _, rank := range s.ranks {
-		bucket := s.buckets[rank]
-
-		for i := len(bucket) - 1; i >= 0; i-- {
-			slice = append(slice)
-
-			if !yield(rank, bucket[i]) {
-				return
-			}
-		}
-	}
 }

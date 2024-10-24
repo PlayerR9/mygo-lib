@@ -15,17 +15,13 @@ type Stack[T any] struct {
 }
 
 // Size implements the Lister interface.
-func (s *Stack[T]) Size() int {
-	if s == nil {
-		return 0
-	}
-
+func (s Stack[T]) Size() int {
 	return len(s.slice)
 }
 
 // IsEmpty implements the Lister interface.
-func (s *Stack[T]) IsEmpty() bool {
-	return s == nil || len(s.slice) == 0
+func (s Stack[T]) IsEmpty() bool {
+	return len(s.slice) == 0
 }
 
 // Reset implements the Lister interface.
@@ -129,8 +125,8 @@ func (s *Stack[T]) Pop() (T, error) {
 //
 // Errors:
 //   - ErrEmptyStack: If the stack is empty.
-func (s *Stack[T]) Peek() (T, error) {
-	if s == nil || len(s.slice) == 0 {
+func (s Stack[T]) Peek() (T, error) {
+	if len(s.slice) == 0 {
 		return *new(T), ErrEmptyStack
 	}
 

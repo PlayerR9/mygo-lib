@@ -23,11 +23,7 @@ type RefusableStack[T any] struct {
 // An instance of RefusableStack is valid if and only if the following conditions are met:
 // - top >= 0
 // - top <= len(slice)
-func (s *RefusableStack[T]) Validate() error {
-	if s == nil {
-		return nil
-	}
-
+func (s RefusableStack[T]) Validate() error {
 	if s.top < 0 || s.top > len(s.slice) {
 		return fmt.Errorf("%q is not in [%d, %d]", "top", 0, len(s.slice))
 	}
@@ -36,24 +32,12 @@ func (s *RefusableStack[T]) Validate() error {
 }
 
 // Size implements the Lister interface.
-func (s *RefusableStack[T]) Size() int {
-	if s == nil {
-		return 0
-	}
-
-	// common.Validate(s)
-
+func (s RefusableStack[T]) Size() int {
 	return s.top
 }
 
 // IsEmpty implements the Lister interface.
-func (s *RefusableStack[T]) IsEmpty() bool {
-	if s == nil {
-		return true
-	}
-
-	// common.Validate(s)
-
+func (s RefusableStack[T]) IsEmpty() bool {
 	return s.top == 0
 }
 
@@ -178,13 +162,7 @@ func (s *RefusableStack[T]) Pop() (T, error) {
 //
 // Errors:
 //   - ErrEmptyStack: If the stack is empty.
-func (s *RefusableStack[T]) Peek() (T, error) {
-	if s == nil {
-		return *new(T), ErrEmptyStack
-	}
-
-	// common.Validate(s)
-
+func (s RefusableStack[T]) Peek() (T, error) {
 	if s.top == 0 {
 		return *new(T), ErrEmptyStack
 	}
@@ -237,13 +215,7 @@ func (s *RefusableStack[T]) RefuseOne() {
 //
 // Returns:
 //   - []T: The elements that were popped. Nil if no elements were popped.
-func (s *RefusableStack[T]) Popped() []T {
-	if s == nil {
-		return nil
-	}
-
-	// common.Validate(s)
-
+func (s RefusableStack[T]) Popped() []T {
 	if s.top == len(s.slice) {
 		return nil
 	}

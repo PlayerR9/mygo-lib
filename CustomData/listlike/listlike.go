@@ -6,16 +6,12 @@ type Lister interface {
 	//
 	// Returns:
 	//   - int: The number of elements in the list-like data structure. Never negative.
-	//
-	// If the receiver is nil, 0 is returned.
 	Size() int
 
 	// IsEmpty checks whether the list-like data structure is empty.
 	//
 	// Returns:
 	//   - bool: True if the list-like data structure is empty, false otherwise.
-	//
-	// If the receiver is nil, true is returned.
 	IsEmpty() bool
 
 	// Reset resets the list-like data structure for reuse.

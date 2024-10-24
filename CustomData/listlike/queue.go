@@ -12,17 +12,13 @@ type Queue[T any] struct {
 }
 
 // Size implements the Lister interface.
-func (q *Queue[T]) Size() int {
-	if q == nil {
-		return 0
-	}
-
+func (q Queue[T]) Size() int {
 	return len(q.slice)
 }
 
 // IsEmpty implements the Lister interface.
-func (q *Queue[T]) IsEmpty() bool {
-	return q == nil || len(q.slice) == 0
+func (q Queue[T]) IsEmpty() bool {
+	return len(q.slice) == 0
 }
 
 // Reset implements the Lister interface.
@@ -118,8 +114,8 @@ func (q *Queue[T]) Dequeue() (T, error) {
 //
 // Errors:
 //   - ErrEmptyQueue: If the queue is empty.
-func (q *Queue[T]) First() (T, error) {
-	if q == nil || len(q.slice) == 0 {
+func (q Queue[T]) First() (T, error) {
+	if len(q.slice) == 0 {
 		return *new(T), ErrEmptyQueue
 	}
 

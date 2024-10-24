@@ -16,17 +16,13 @@ type OrderedSet[T cmp.Ordered] struct {
 }
 
 // Size implements the Set interface.
-func (s *OrderedSet[T]) Size() int {
-	if s == nil {
-		return 0
-	}
-
+func (s OrderedSet[T]) Size() int {
 	return len(s.elems)
 }
 
 // IsEmpty implements the Set interface.
-func (s *OrderedSet[T]) IsEmpty() bool {
-	return s == nil || len(s.elems) == 0
+func (s OrderedSet[T]) IsEmpty() bool {
+	return len(s.elems) == 0
 }
 
 // Reset implements the Set interface.
@@ -74,8 +70,8 @@ func (s *OrderedSet[T]) AddMany(elems ...T) error {
 }
 
 // Contains implements the Set interface.
-func (s *OrderedSet[T]) Contains(elem T) bool {
-	if s == nil || len(s.elems) == 0 {
+func (s OrderedSet[T]) Contains(elem T) bool {
+	if len(s.elems) == 0 {
 		return false
 	}
 
@@ -84,8 +80,8 @@ func (s *OrderedSet[T]) Contains(elem T) bool {
 }
 
 // Elem implements the Set interface.
-func (s *OrderedSet[T]) Elem() iter.Seq[T] {
-	if s == nil || len(s.elems) == 0 {
+func (s OrderedSet[T]) Elem() iter.Seq[T] {
+	if len(s.elems) == 0 {
 		return func(yield func(T) bool) {}
 	}
 

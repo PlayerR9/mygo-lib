@@ -13,16 +13,12 @@ type Set[T any] interface {
 	//
 	// Returns:
 	//   - int: The number of elements in the set. Never negative.
-	//
-	// If the receiver is nil, 0 is returned.
 	Size() int
 
 	// IsEmpty checks whether the set is empty.
 	//
 	// Returns:
 	//   - bool: True if the set is empty, false otherwise.
-	//
-	// If the receiver is nil, true is returned.
 	IsEmpty() bool
 
 	// Reset resets the set for reuse.
@@ -54,8 +50,6 @@ type Set[T any] interface {
 	//
 	// Returns:
 	//   - bool: True if the element is present in the set, false otherwise.
-	//
-	// If the receiver is nil or the set is empty, false is returned.
 	Contains(elem T) bool
 
 	// Elem iterates through the elements in the set. The order of elements
@@ -63,8 +57,6 @@ type Set[T any] interface {
 	//
 	// Returns:
 	//   - iter.Seq[T]: The elements in the set. Never returns nil.
-	//
-	// If the receiver is nil or the set is empty, an empty sequence is returned.
 	Elem() iter.Seq[T]
 }
 
@@ -81,6 +73,10 @@ type Set[T any] interface {
 // Errors:
 //   - common.ErrBadParam: If other has at least one element and from is nil.
 func Merge[T any](from, other Set[T]) error {
+	if other == nil {
+		return nil
+	}
+
 	slice := slices.Collect(other.Elem())
 	if len(slice) == 0 {
 		return nil
