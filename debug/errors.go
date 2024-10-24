@@ -2,9 +2,6 @@ package debug
 
 import (
 	"fmt"
-
-	gers "github.com/PlayerR9/mygo-lib/OLD/errors"
-	"github.com/dustin/go-humanize"
 )
 
 // ErrPrintFailed is an error that is returned when printing failed.
@@ -18,7 +15,15 @@ type ErrPrintFailed struct {
 
 // Error implements the error interface.
 func (e ErrPrintFailed) Error() string {
-	return fmt.Sprintf("could not print the %s element: %s", humanize.Ordinal(e.Idx+1), gers.ErrMsgOf(e.Reason))
+	var msg string
+
+	if e.Reason == nil {
+		msg = "something went wrong"
+	} else {
+		msg = e.Reason.Error()
+	}
+
+	return fmt.Sprintf("could not print element at index %d: %s", e.Idx, msg)
 }
 
 // NewErrPrintFailed creates a new ErrPrintFailed error.
