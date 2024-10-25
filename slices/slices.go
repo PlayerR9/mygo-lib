@@ -48,6 +48,7 @@ func Filter[T any](slice *[]T, p Predicate[T]) {
 		return
 	}
 
+	clear((*slice)[top:])
 	*slice = (*slice)[:top:top]
 }
 
@@ -91,6 +92,7 @@ func Reject[T any](slice *[]T, p Predicate[T]) {
 		return
 	}
 
+	clear((*slice)[top:])
 	*slice = (*slice)[:top:top]
 }
 
@@ -119,6 +121,7 @@ func RejectNils[T any](slice *[]*T) {
 		return
 	}
 
+	clear((*slice)[top:])
 	*slice = (*slice)[:top:top]
 }
 
@@ -169,4 +172,7 @@ func ComplexFilter[T any](slice *[]T, fn func(indices *[]int) bool) {
 		(*slice)[top] = (*slice)[idx]
 		top++
 	}
+
+	clear((*slice)[top:])
+	*slice = (*slice)[:top:top]
 }

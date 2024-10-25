@@ -40,5 +40,6 @@ func RejectNils[T Pointer](slice *[]T) {
 		return
 	}
 
+	clear((*slice)[top:])
 	*slice = (*slice)[:top:top]
 }
