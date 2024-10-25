@@ -53,14 +53,7 @@ type Subject[E any] interface {
 // Returns:
 //   - error: An error if the history could not be realigned.
 func realign[E any](history *History[E], subject Subject[E]) error {
-	history.Reset()
-
-	for {
-		event, ok := history.Walk()
-		if !ok {
-			break
-		}
-
+	for _, event := range history.timeline[:history.arrow] {
 		err := subject.ApplyEvent(event)
 		if err != nil {
 			return err
@@ -116,13 +109,21 @@ func pushPaths[E any](nexts []E, history **History[E], all_paths *[]*History[E])
 // Returns:
 //   - error: An error if the subject is nil, or if the subject got an error or is done
 //     before the history could be aligned.
-func executeUntil[E any, S Subject[E]](all_paths *[]*History[E], subject S) error {
+func executeUntil[E any, S Subject[E]](all_paths *[]*History[E], subject S) (*History[E], error) {
 	history := (*all_paths)[0]
 	*all_paths = (*all_paths)[1:]
 
 	err := realign(history, subject)
 	if err != nil {
-		return err
+		return history, err
+	}
+
+	event, ok := history.Walk()
+	if ok {
+		err = subject.ApplyEvent(event)
+		if err != nil {
+			return history, err
+		}
 	}
 
 	var nexts []E
@@ -144,7 +145,7 @@ func executeUntil[E any, S Subject[E]](all_paths *[]*History[E], subject S) erro
 		err = subject.ApplyEvent(event)
 	}
 
-	return err
+	return history, err
 }
 
 // Evaluate returns a sequence of all possible subjects that can be obtained by executing the given initialisation
@@ -162,36 +163,43 @@ func executeUntil[E any, S Subject[E]](all_paths *[]*History[E], subject S) erro
 // Returns:
 //   - iter.Seq2[S, error]: A sequence of all possible subjects that can be obtained by executing the initialisation
 //     function and then applying events to the subject. Never returns nil.
-func Evaluate[E any, S Subject[E]](init_fn func() (S, error)) iter.Seq2[S, error] {
+func Evaluate[E any, S Subject[E]](init_fn func() (S, error)) iter.Seq2[Pair[E, S], error] {
 	if init_fn == nil {
 		init_fn = func() (S, error) {
 			return *new(S), nil
 		}
 	}
 
-	return func(yield func(S, error) bool) {
-		all_paths := []*History[E]{new(History[E])}
+	return func(yield func(Pair[E, S], error) bool) {
+		history := new(History[E])
 
-		var invalids []S
+		all_paths := []*History[E]{history}
+
+		var invalids []Pair[E, S]
 
 		for len(all_paths) > 0 {
 			subject, err := init_fn()
 			if err != nil {
-				_ = yield(subject, err)
+				_ = yield(Pair[E, S]{
+					Solution: subject,
+					History:  history.Events(),
+				}, err)
 
 				return
 			}
 
-			err = executeUntil(&all_paths, subject)
+			history, err = executeUntil(&all_paths, subject)
+			pair := NewPair(subject, history.Events())
+
 			if err != nil {
-				_ = yield(subject, err)
+				_ = yield(pair, err)
 
 				return
 			}
 
 			if subject.HasError() {
-				invalids = append(invalids, subject)
-			} else if !yield(subject, nil) {
+				invalids = append(invalids, pair)
+			} else if !yield(pair, nil) {
 				return
 			}
 		}

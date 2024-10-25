@@ -74,3 +74,18 @@ func (h *History[E]) Walk() (E, bool) {
 
 	return event, true
 }
+
+// Events returns a copy of the timeline.
+//
+// Returns:
+//   - []E: A copy of the timeline.
+func (h History[E]) Events() []E {
+	if len(h.timeline) == 0 {
+		return nil
+	}
+
+	slice := make([]E, len(h.timeline))
+	copy(slice, h.timeline)
+
+	return slice
+}
