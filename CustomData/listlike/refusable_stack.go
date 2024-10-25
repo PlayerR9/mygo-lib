@@ -96,6 +96,7 @@ func (s *RefusableStack[T]) Push(elem T) error {
 	}
 
 	s.slice = append(s.slice, elem)
+	s.top++
 
 	return nil
 }
@@ -126,6 +127,7 @@ func (s *RefusableStack[T]) PushMany(elems []T) error {
 	slices.Reverse(elems)
 
 	s.slice = append(s.slice, elems...)
+	s.top += len(elems)
 
 	return nil
 }
