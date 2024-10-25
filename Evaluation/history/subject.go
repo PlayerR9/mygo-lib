@@ -39,6 +39,14 @@ type Subject[E any] interface {
 	// Returns:
 	//   - bool: True if the subject has an error, false otherwise.
 	HasError() bool
+
+	// GetError returns the error associated with the subject. However, this is mostly
+	// used as a builder for the error and, as such, it always assume an error
+	// has, indeed, occurred.
+	//
+	// Returns:
+	//   - error: The error associated with the subject.
+	GetError() error
 }
 
 // realign realigns the history with the subject by applying each event in the history
@@ -181,8 +189,8 @@ func Evaluate[E any, S Subject[E]](init_fn func() (S, error)) iter.Seq2[Pair[E, 
 			subject, err := init_fn()
 			if err != nil {
 				_ = yield(Pair[E, S]{
-					Solution: subject,
-					History:  history.Events(),
+					Subject: subject,
+					History: history.Events(),
 				}, err)
 
 				return
