@@ -2,7 +2,7 @@ package generator
 
 import (
 	"bytes"
-	"html/template"
+	"text/template"
 
 	"github.com/PlayerR9/mygo-lib/common"
 )
