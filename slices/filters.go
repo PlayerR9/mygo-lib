@@ -176,3 +176,84 @@ func ComplexFilter[T any](slice *[]T, fn func(indices *[]int) bool) {
 	clear((*slice)[top:])
 	*slice = (*slice)[:top:top]
 }
+
+// FilterIfApplicable applies a predicate function on a slice of elements, retaining only
+// those elements that satisfy the predicate. This function modifies the
+// original list in-place. Does nothing if no elements satisfy the predicate.
+//
+// Parameters:
+//   - slice: The list of elements to filter.
+//   - p: The predicate function to apply.
+//
+// Returns:
+//   - bool: True if the slice was empty or elements were successfully
+//     filtered, false if the predicate is nil or no elements satisfy the predicate.
+//
+// Behavior:
+//   - If the list is empty or all elements are removed, returns true.
+//   - If the predicate is nil or no elements satisfy the predicate, returns false.
+func FilterIfApplicable[T any](slice *[]T, p Predicate[T]) bool {
+	if slice == nil || len(*slice) == 0 {
+		return true
+	} else if p == nil {
+		return false
+	}
+
+	var top int
+
+	for _, elem := range *slice {
+		ok := p(elem)
+		if ok {
+			(*slice)[top] = elem
+			top++
+		}
+	}
+
+	if top == 0 {
+		return false
+	}
+
+	clear((*slice)[top:])
+	*slice = (*slice)[:top:top]
+
+	return true
+}
+
+// RejectIfApplicable applies a predicate function on a slice of elements, rejecting
+// only those elements that do not satisfy the predicate. This function modifies the
+// original list in-place. Does nothing if no elements do not satisfy the predicate.
+//
+// Parameters:
+//   - slice: the list of elements to filter.
+//   - p: the predicate function to apply.
+//
+// Returns:
+//   - bool: True if the slice was empty or all elements were successfully
+//     filtered, false if the predicate is nil or no elements do not satisfy the
+//     predicate.
+func RejectIfApplicable[T any](slice *[]T, p Predicate[T]) bool {
+	if slice == nil || len(*slice) == 0 {
+		return true
+	} else if p == nil {
+		return false
+	}
+
+	var top int
+
+	for _, elem := range *slice {
+		ok := p(elem)
+		if !ok {
+			(*slice)[top] = elem
+			top++
+		}
+	}
+
+	if top == 0 {
+		return false
+	}
+
+	clear((*slice)[top:])
+	*slice = (*slice)[:top:top]
+
+	return true
+}

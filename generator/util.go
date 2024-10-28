@@ -1,38 +1,33 @@
 package generator
 
 import (
-	"errors"
-	"fmt"
 	"go/build"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
-// FixImportDir fixes the given location to be a valid import path.
-//
-// It first checks that the location is not empty. Then it checks that the
-// extension is ".go". After that, it checks that the directory of the location
-// is not the current directory. If it is, it gets the package name using the
-// "go build" package and returns it. If not, it splits the directory of the
-// location and returns the second element of the split.
-//
-// If any of the above checks fails, it returns an error.
+// GoExt is the extension for Go files.
+const GoExt string = ".go"
+
+// GetPkgName returns the package name of the given file.
 //
 // Parameters:
-//   - loc: The location to be fixed.
+//   - loc: The location of the file. This must be a Go file.
 //
 // Returns:
-//   - string: The fixed import path.
-//   - error: An error if the location could not be fixed.
-func FixImportDir(loc string) (string, error) {
+//   - string: The package name of the file.
+//   - error: An error if getting the package name failed.
+func GetPkgName(loc string) (string, error) {
 	if loc == "" {
-		return "", errors.New("empty location")
+		return "", common.NewErrBadParam("loc", "must not be empty")
 	}
 
 	ext := filepath.Ext(loc)
-	if ext != ".go" {
-		return "", fmt.Errorf("expected %q extension, got %q", ".go", ext)
+	if ext != GoExt {
+		return "", common.NewErrBadParam("loc", "must be a Go file")
 	}
 
 	dir_loc := filepath.Dir(loc)
