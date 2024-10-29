@@ -192,3 +192,30 @@ func Normalize(chars *[]rune, tab_size int) error {
 
 	return nil
 }
+
+// Equals checks if two slices of runes are equal.
+//
+// The two slices are considered equal if they have the same length and the same
+// elements in the same order.
+//
+// Parameters:
+//   - first: The first slice of runes.
+//   - second: The second slice of runes.
+//
+// Returns:
+//   - bool: True if the two slices are equal, false otherwise.
+func Equals(first, second []rune) bool {
+	if len(first) != len(second) {
+		return false
+	} else if len(first) == 0 {
+		return true
+	}
+
+	for i, c := range first {
+		if c != second[i] {
+			return false
+		}
+	}
+
+	return true
+}
