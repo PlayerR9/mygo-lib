@@ -1,32 +1,19 @@
 package strings
 
-import "strings"
+import (
+	"strconv"
+)
 
-// EitherOrString is a function that returns a string representation of a slice
-// of strings. Empty strings are ignored.
+// Quote quotes each string in the given slice of strings.
 //
 // Parameters:
-//   - values: The values to convert to a string.
-//
-// Returns:
-//   - string: The string representation.
+//   - elems: The slice of strings to quote.
 //
 // Example:
 //
-//	EitherOrString([]string{"a", "b", "c"}) // "either a, b, or c"
-func EitherOrString(elems []string) string {
-	var str string
-
-	switch len(elems) {
-	case 0:
-		// Do nothing
-	case 1:
-		str = elems[0]
-	case 2:
-		str = "either " + elems[0] + " or " + elems[1]
-	default:
-		str = "either " + strings.Join(elems[:len(elems)-1], ", ") + ", or " + elems[len(elems)-1]
+//	Quote([]string{"a", "b", "c"}) // => []string{"\"a\"", "\"b\"", "\"c\""}
+func Quote(elems []string) {
+	for i := range elems {
+		elems[i] = strconv.Quote(elems[i])
 	}
-
-	return str
 }

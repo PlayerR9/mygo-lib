@@ -114,9 +114,9 @@ func normalizeNewlines(chars *[]rune) error {
 	next_idx := indices[len(indices)-1] + 1
 
 	if next_idx >= len(*chars) {
-		return NewErrNotAsExpected(next_idx, '\n', nil)
+		return NewErrAt(next_idx, NewErrNotAsExpected(true, "", nil, '\n'))
 	} else if (*chars)[next_idx] != '\n' {
-		return NewErrNotAsExpected(next_idx, '\n', &(*chars)[next_idx])
+		return NewErrAt(next_idx, NewErrNotAsExpected(true, "", &(*chars)[next_idx], '\n'))
 	}
 
 	*chars = slices.Delete(*chars, next_idx-1, next_idx)
@@ -128,7 +128,7 @@ func normalizeNewlines(chars *[]rune) error {
 		char := (*chars)[idx]
 
 		if char != '\n' {
-			return NewErrNotAsExpected(idx, '\n', &char)
+			return NewErrAt(idx, NewErrNotAsExpected(true, "", &char, '\n'))
 		}
 
 		*chars = slices.Delete(*chars, idx-1, idx)
