@@ -1,6 +1,7 @@
 package bytes
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/PlayerR9/mygo-lib/common"
@@ -149,6 +150,119 @@ func (w *MultiWriter) WriteMany(datas ...[]byte) error {
 	w.written += n
 
 	if err == nil && n != total {
+		err = io.ErrShortWrite
+	}
+
+	return err
+}
+
+// WriteString writes the given string to the underlying io.Writer.
+//
+// Parameters:
+//   - str: The string to write.
+//
+// Returns:
+//   - error: An error if writing failed.
+//
+// Errors:
+//   - io.ErrShortWrite: If the data is not fully written.
+//   - any other error returned by the underlying io.Writer.
+func (w *MultiWriter) WriteString(str string) error {
+	if str == "" {
+		return nil
+	} else if w == nil {
+		return io.ErrShortWrite
+	}
+
+	data := []byte(str)
+
+	n, err := w.w.Write(data)
+	w.written += n
+
+	if err == nil && n != len(data) {
+		err = io.ErrShortWrite
+	}
+
+	return err
+}
+
+// Printf formats the given arguments according to the given format string and
+// writes the result to the underlying io.Writer.
+//
+// Parameters:
+//   - format: The format string.
+//   - args: The arguments to format.
+//
+// Returns:
+//   - error: An error if writing failed.
+//
+// Errors:
+//   - io.ErrShortWrite: If the data is not fully written.
+//   - any other error returned by the underlying io.Writer.
+func (w *MultiWriter) Printf(format string, args ...any) error {
+	data := []byte(fmt.Sprintf(format, args...))
+	if len(data) == 0 {
+		return nil
+	}
+
+	n, err := w.w.Write(data)
+	w.written += n
+
+	if err == nil && n != len(data) {
+		err = io.ErrShortWrite
+	}
+
+	return err
+}
+
+// Print writes the given arguments to the underlying io.Writer.
+//
+// Parameters:
+//   - args: The arguments to write.
+//
+// Returns:
+//   - error: An error if writing failed.
+//
+// Errors:
+//   - io.ErrShortWrite: If the data is not fully written.
+//   - any other error returned by the underlying io.Writer.
+func (w *MultiWriter) Print(args ...any) error {
+	data := []byte(fmt.Sprint(args...))
+	if len(data) == 0 {
+		return nil
+	}
+
+	n, err := w.w.Write(data)
+	w.written += n
+
+	if err == nil && n != len(data) {
+		err = io.ErrShortWrite
+	}
+
+	return err
+}
+
+// Println writes the given arguments to the underlying io.Writer, followed by a newline.
+//
+// Parameters:
+//   - args: The arguments to write.
+//
+// Returns:
+//   - error: An error if writing failed.
+//
+// Errors:
+//   - io.ErrShortWrite: If the data is not fully written.
+//   - any other error returned by the underlying io.Writer.
+func (w *MultiWriter) Println(args ...any) error {
+	data := []byte(fmt.Sprintln(args...))
+	if len(data) == 0 {
+		return nil
+	}
+
+	n, err := w.w.Write(data)
+	w.written += n
+
+	if err == nil && n != len(data) {
 		err = io.ErrShortWrite
 	}
 
