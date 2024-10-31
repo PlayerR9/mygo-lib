@@ -106,3 +106,22 @@ func TODO(msg string) {
 		panic("TODO: " + msg)
 	}
 }
+
+// Must is a helper function that wraps a call to a function that returns (T, error) and
+// panics if the error is not nil.
+//
+// This function is intended to be used to handle errors in a way that is easy to read and write.
+//
+// Parameters:
+//   - res: The result of the function.
+//   - err: The error returned by the function.
+//
+// Returns:
+//   - T: The result of the function.
+func Must[T any](res T, err error) T {
+	if err != nil {
+		panic(NewErrMust(err))
+	}
+
+	return res
+}

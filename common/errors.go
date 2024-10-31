@@ -2,7 +2,7 @@ package common
 
 import (
 	"errors"
-	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -91,23 +91,23 @@ func NewErrNilParam(param_name string) error {
 	}
 }
 
-// ErrNotAsExpected occurs when a value is not as expected.
-type ErrNotAsExpected[T any] struct {
-	// Quote if true, the values will be quoted before being printed.
+// ErrNotAsExpected occurs when a string is not as expected.
+type ErrNotAsExpected struct {
+	// Quote if true, the strings will be quoted before being printed.
 	Quote bool
 
-	// Kind is the kind of the value that is not as expected.
+	// Kind is the kind of the string that is not as expected.
 	Kind string
 
-	// Expected are the values that were expected.
-	Expecteds []T
+	// Expecteds are the strings that were expecteds.
+	Expecteds []string
 
-	// Got is the actual value.
-	Got any
+	// Got is the actual string.
+	Got string
 }
 
 // Error implements the error interface.
-func (e ErrNotAsExpected[T]) Error() string {
+func (e ErrNotAsExpected) Error() string {
 	var kind string
 
 	if e.Kind != "" {
@@ -116,13 +116,12 @@ func (e ErrNotAsExpected[T]) Error() string {
 
 	var got string
 
-	if e.Got == nil {
+	if e.Got == "" {
 		got = "nothing"
 	} else if e.Quote {
-		got = fmt.Sprint(e.Got)
-		got = strconv.Quote(got)
+		got = strconv.Quote(e.Got)
 	} else {
-		got = fmt.Sprint(e.Got)
+		got = e.Got
 	}
 
 	var builder strings.Builder
@@ -130,20 +129,25 @@ func (e ErrNotAsExpected[T]) Error() string {
 	builder.WriteString("expected ")
 	builder.WriteString(kind)
 
-	elems := make([]string, 0, len(e.Expecteds))
+	if len(e.Expecteds) > 0 {
+		var elems []string
 
-	for _, elem := range e.Expecteds {
-		str := fmt.Sprint(elem)
-		elems = append(elems, str)
-	}
+		if !e.Quote {
+			elems = e.Expecteds
+		} else {
+			elems = make([]string, 0, len(e.Expecteds))
 
-	if e.Quote {
-		for i := range elems {
-			elems[i] = strconv.Quote(elems[i])
+			for _, elem := range e.Expecteds {
+				str := strconv.Quote(elem)
+				elems = append(elems, str)
+			}
 		}
+
+		builder.WriteString(EitherOrString(elems))
+	} else {
+		builder.WriteString("something")
 	}
 
-	builder.WriteString(EitherOrString(elems))
 	builder.WriteString(", got ")
 	builder.WriteString(got)
 
@@ -153,9 +157,9 @@ func (e ErrNotAsExpected[T]) Error() string {
 // NewErrNotAsExpected creates a new ErrNotAsExpected error.
 //
 // Parameters:
-//   - quote: Whether or not to quote the values in the error message.
+//   - quote: Whether or not to quote the strings in the error message.
 //   - kind: The kind of thing that was not as expected. This is used in the error message.
-//   - got: The actual value. If nil, "nothing" is used in the error message.
+//   - got: The actual value. If empty, "nothing" is used in the error message.
 //   - expecteds: The expected values. If empty, "something" is used in the error message.
 //
 // Returns:
@@ -169,11 +173,70 @@ func (e ErrNotAsExpected[T]) Error() string {
 //   - <kind>: The kind of thing that was not as expected. This is used in the error message.
 //   - <expected>: The expected values. This is used in the error message.
 //   - <got>: The actual value. This is used in the error message. If nil, "nothing" is used instead.
-func NewErrNotAsExpected[T any](quote bool, kind string, got any, expecteds ...T) error {
-	return &ErrNotAsExpected[T]{
+//
+// Duplicate values are automatically removed and the list of expected values is sorted in ascending order.
+func NewErrNotAsExpected(quote bool, kind string, got string, expecteds ...string) error {
+	unique := make([]string, 0, len(expecteds))
+
+	for _, expected := range expecteds {
+		pos, ok := slices.BinarySearch(unique, expected)
+		if !ok {
+			unique = slices.Insert(unique, pos, expected)
+		}
+	}
+
+	unique = unique[:len(unique):len(unique)]
+
+	return &ErrNotAsExpected{
 		Quote:     quote,
 		Kind:      kind,
-		Expecteds: expecteds,
+		Expecteds: unique,
 		Got:       got,
 	}
+}
+
+// ErrMust occurs when something must be true.
+type ErrMust struct {
+	// Inner is the inner error.
+	Inner error
+}
+
+// Error implements the error interface.
+func (e ErrMust) Error() string {
+	var msg string
+
+	if e.Inner == nil {
+		msg = "something went wrong"
+	} else {
+		msg = e.Inner.Error()
+	}
+
+	return "must: " + msg
+}
+
+// NewErrMust creates a new ErrMust error.
+//
+// Parameters:
+//   - inner: The inner error.
+//
+// Returns:
+//   - error: The new error. Never returns nil.
+//
+// Format:
+//
+//	"must: <inner>"
+//
+// Where, <inner>: The inner error. If nil, "something went wrong" is used instead.
+func NewErrMust(inner error) error {
+	return &ErrMust{
+		Inner: inner,
+	}
+}
+
+// Unwrap returns the inner error.
+//
+// Returns:
+//   - error: The inner error.
+func (e ErrMust) Unwrap() error {
+	return e.Inner
 }

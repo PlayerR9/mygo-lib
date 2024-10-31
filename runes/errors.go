@@ -3,8 +3,8 @@ package runes
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
-	"strings"
 
 	"github.com/PlayerR9/mygo-lib/common"
 )
@@ -75,91 +75,31 @@ func (e ErrAt) Unwrap() error {
 	return e.Inner
 }
 
-// ErrNotAsExpected occurs when a rune is not as expected.
-type ErrNotAsExpected struct {
-	// Quote if true, the runes will be quoted before being printed.
-	Quote bool
-
-	// Kind is the kind of the rune that is not as expected.
-	Kind string
-
-	// Expecteds are the runes that were expected.
-	Expecteds []rune
-
-	// Got is the actual rune.
-	Got *rune
-}
-
-// Error implements the error interface.
-func (e ErrNotAsExpected) Error() string {
-	var kind string
-
-	if e.Kind != "" {
-		kind = e.Kind + " to be "
-	}
-
-	var got string
-
-	if e.Got == nil {
-		got = "nothing"
-	} else if e.Quote {
-		got = strconv.QuoteRune(*e.Got)
-	} else {
-		got = string(*e.Got)
-	}
-
-	var builder strings.Builder
-
-	builder.WriteString("expected ")
-	builder.WriteString(kind)
-
-	elems := make([]string, 0, len(e.Expecteds))
-
-	if e.Quote {
-		for _, elem := range e.Expecteds {
-			str := strconv.QuoteRune(elem)
-			elems = append(elems, str)
-		}
-	} else {
-		for _, elem := range e.Expecteds {
-			str := string(elem)
-			elems = append(elems, str)
-		}
-	}
-
-	builder.WriteString(common.EitherOrString(elems))
-	builder.WriteString(", got ")
-	builder.WriteString(got)
-
-	return builder.String()
-}
-
-// NewErrNotAsExpected creates a new ErrNotAsExpected error.
+// NewErrNotAsExpected is a convenience function that creates a new ErrNotAsExpected error with
+// the specified kind, got value, and expected values.
 //
-// Parameters:
-//   - quote: Whether or not to quote the runes in the error message.
-//   - kind: The kind of thing that was not as expected. This is used in the error message.
-//   - got: The actual value. If nil, "nothing" is used in the error message.
-//   - expecteds: The expected values. If empty, "something" is used in the error message.
-//
-// Returns:
-//   - error: The new error. Never returns nil.
-//
-// Format:
-//
-//	"expected <kind> to be <expected>, got <got>"
-//
-// Where:
-//   - <kind>: The kind of thing that was not as expected. This is used in the error message.
-//   - <expected>: The expected values. This is used in the error message.
-//   - <got>: The actual value. This is used in the error message. If nil, "nothing" is used instead.
+// See common.NewErrNotAsExpected for more information.
 func NewErrNotAsExpected(quote bool, kind string, got *rune, expecteds ...rune) error {
-	return &ErrNotAsExpected{
-		Quote:     quote,
-		Kind:      kind,
-		Expecteds: expecteds,
-		Got:       got,
+	var got_str string
+
+	if got != nil {
+		got_str = string(*got)
 	}
+
+	unique := make([]string, 0, len(expecteds))
+
+	for _, expected := range expecteds {
+		str := string(expected)
+
+		pos, ok := slices.BinarySearch(unique, str)
+		if !ok {
+			unique = slices.Insert(unique, pos, str)
+		}
+	}
+
+	unique = unique[:len(unique):len(unique)]
+
+	return common.NewErrNotAsExpected(quote, kind, got_str, unique...)
 }
 
 // ErrAfter is an error that occurs after another error.
