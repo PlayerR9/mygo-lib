@@ -104,7 +104,8 @@ func Repeat(char rune, count int) []rune {
 //   - error: An error if normalization failed.
 //
 // Errors:
-//   - ErrNotAsExpected: If '\r' is not followed by '\n'.
+//   - ErrAt: If '\r' is not followed by '\n' at the specified index. This error wraps
+//     ErrNotAsExpected.
 func normalizeNewlines(chars *[]rune) error {
 	indices := IndicesOf(*chars, '\r')
 	if len(indices) == 0 {
@@ -174,6 +175,8 @@ func normalizeTabs(chars *[]rune, repl []rune) {
 //
 // Errors:
 //   - common.ErrBadParam: If tab_size is not positive.
+//   - ErrAt: If '\r' is not followed by '\n' at the specified index. This error wraps
+//     ErrNotAsExpected.
 func Normalize(chars *[]rune, tab_size int) error {
 	if chars == nil || len(*chars) == 0 {
 		return nil

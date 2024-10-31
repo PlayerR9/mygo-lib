@@ -2,21 +2,22 @@ package box_drawer
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"unicode/utf8"
 
 	gby "github.com/PlayerR9/mygo-lib/bytes"
+	"github.com/PlayerR9/mygo-lib/common"
+	gch "github.com/PlayerR9/mygo-lib/runes"
 )
 
 var (
 	// DefaultBoxStyle is the default box style, that is, a padding of [1, 1, 1, 1] and
 	// a line type of BtNormal (no heavy lines).
-	DefaultBoxStyle *BoxStyle
+	DefaultBoxStyle BoxStyle
 )
 
 func init() {
-	DefaultBoxStyle = &BoxStyle{
+	DefaultBoxStyle = BoxStyle{
 		LineType: BtNormal,
 		IsHeavy:  false,
 		Padding:  [4]int{1, 1, 1, 1},
@@ -67,15 +68,15 @@ type BoxStyle struct {
 //   - padding: The padding of the box. [Top, Right, Bottom, Left]
 //
 // Returns:
-//   - *BoxStyle: The new box style. Never returns nil.
-func NewBoxStyle(line_type BoxBorderType, is_heavy bool, padding [4]int) *BoxStyle {
+//   - BoxStyle: The new box style.
+func NewBoxStyle(line_type BoxBorderType, is_heavy bool, padding [4]int) BoxStyle {
 	for i := 0; i < 4; i++ {
 		if padding[i] < 0 {
 			padding[i] = 0
 		}
 	}
 
-	bs := &BoxStyle{
+	bs := BoxStyle{
 		LineType: line_type,
 		IsHeavy:  is_heavy,
 		Padding:  padding,
@@ -198,31 +199,44 @@ func (bs BoxStyle) SideBorder() []byte {
 //
 // Parameters:
 //   - table: The byte slice containing the UTF-8 encoded text.
+//   - tab_size: The tab size.
 //
 // Returns:
 //   - int: The length of the longest line.
-//   - error: An error if an invalid UTF-8 character is encountered.
-func rightMostEdge(table []byte) (int, error) {
+//   - error: An error if the right most edge calculation fails.
+//
+// Errors:
+//   - common.ErrBadParam: If tab_size is not positive.
+//   - runes.ErrBadEncoding: If an invalid UTF-8 character is encountered.
+//   - runes.ErrAt: If '\r' is not followed by '\n' at the specified index. This error wraps
+//     ErrNotAsExpected.
+func rightMostEdge(table []byte, tab_size int) (int, error) {
 	if len(table) == 0 {
 		return 0, nil
+	} else if tab_size <= 0 {
+		return 0, common.NewErrBadParam("tab_size", "must be positive")
 	}
 
 	var longest_line, current int
 
-	for len(table) > 0 {
-		r, size := utf8.DecodeRune(table)
-		table = table[size:]
+	chars, err := gch.BytesToUtf8(table)
+	if err != nil {
+		return 0, err
+	}
 
-		switch r {
-		case utf8.RuneError:
-			return longest_line, fmt.Errorf("invalid UTF-8: %q", table)
-		case '\n':
+	err = gch.Normalize(&chars, tab_size)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, c := range chars {
+		if c == '\n' {
 			if current > longest_line {
 				longest_line = current
 			}
 
 			current = 0
-		default:
+		} else {
 			current++
 		}
 	}
@@ -278,16 +292,32 @@ func alignRightEdge(table [][]byte, edge int) [][]byte {
 //	┗━━━━━━━┛
 //
 // Parameters:
-//   - table: The table that contains the content to be drawn.
+//   - w: The underlying io.Writer.
+//   - data: The content to draw the box around.
+//   - tab_size: The tab size.
 //
 // Returns:
+//   - int: The number of bytes written.
 //   - error: An error if the content could not be processed.
 //
 // Behaviors:
 //   - If the box style is nil, the default box style will be used.
 //
 // Each string of the content represents a row in the box.
-func (bs BoxStyle) Apply(w io.Writer, data []byte) (int, error) {
+//
+// Errors:
+//   - common.ErrBadParam: If tab_size is not positive or if w is nil.
+//   - runes.ErrBadEncoding: If an invalid UTF-8 character is encountered.
+//   - runes.ErrAt: If '\r' is not followed by '\n' at the specified index. This error wraps
+//     ErrNotAsExpected.
+//   - any error returned by the underlying io.Writer.
+func (bs BoxStyle) Apply(w io.Writer, data []byte, tab_size int) (int, error) {
+	if tab_size <= 0 {
+		return 0, common.NewErrBadParam("tab_size", "must be positive")
+	} else if w == nil {
+		return 0, common.NewErrNilParam("w")
+	}
+
 	for i := 0; i < 4; i++ {
 		if bs.Padding[i] < 0 {
 			bs.Padding[i] = 0
@@ -300,7 +330,7 @@ func (bs BoxStyle) Apply(w io.Writer, data []byte) (int, error) {
 	tbb_char := bs.TopBorder()
 	corners := bs.Corners()
 
-	right_edge, err := rightMostEdge(data)
+	right_edge, err := rightMostEdge(data, tab_size)
 	if err != nil {
 		return 0, err
 	}
