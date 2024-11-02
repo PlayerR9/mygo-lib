@@ -2,7 +2,6 @@ package runes
 
 import (
 	"errors"
-	"fmt"
 	"slices"
 	"strconv"
 
@@ -20,59 +19,6 @@ var (
 
 func init() {
 	ErrBadEncoding = errors.New("invalid utf-8")
-}
-
-// ErrAt occurs when an error occurs at a specific index.
-type ErrAt struct {
-	// Idx is the index at which the error occurred.
-	Idx int
-
-	// Inner is the inner error.
-	Inner error
-}
-
-// Error implements the error interface.
-func (e ErrAt) Error() string {
-	var reason string
-
-	if e.Inner == nil {
-		reason = "something went wrong"
-	} else {
-		reason = e.Inner.Error()
-	}
-
-	return fmt.Sprintf("at index %d: %s", e.Idx, reason)
-}
-
-// NewErrAt returns a new ErrAt from the given index and inner error.
-//
-// Parameters:
-//   - idx: The index at which the error occurred.
-//   - inner: The inner error.
-//
-// Returns:
-//   - error: The new error. Never returns nil.
-//
-// Format:
-//
-//	"at index <idx>: <reason>"
-//
-// Where:
-//   - <idx>: The index at which the error occurred.
-//   - <reason>: The reason for the error. If nil, "something went wrong" is used instead.
-func NewErrAt(idx int, inner error) error {
-	return &ErrAt{
-		Idx:   idx,
-		Inner: inner,
-	}
-}
-
-// Unwrap implements the errors.Wrapper interface.
-//
-// Returns:
-//   - error: The inner error.
-func (e ErrAt) Unwrap() error {
-	return e.Inner
 }
 
 // NewErrNotAsExpected is a convenience function that creates a new ErrNotAsExpected error with
