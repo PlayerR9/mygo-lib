@@ -257,3 +257,52 @@ func RejectIfApplicable[T any](slice *[]T, p Predicate[T]) bool {
 
 	return true
 }
+
+// Split splits the given slice into two slices.
+//
+// If the given predicate is nil, the whole slice is returned for the second slice.
+//
+// If the given slice is empty, both slices will be empty.
+//
+// The order of the elements in the returned slices is the same as the order in the
+// given slice.
+//
+// Parameters:
+//   - elems: The elements to split.
+//   - predicate: The predicate to use to determine which elements to keep.
+//
+// Returns:
+//   - []T: The elements for which the predicate returned true.
+//   - []T: The elements for which the predicate returned false.
+func Split[T any](elems []T, predicate Predicate[T]) ([]T, []T) {
+	if len(elems) == 0 {
+		return nil, nil
+	} else if predicate == nil {
+		return nil, elems
+	}
+
+	success := make([]T, 0, len(elems)/2)
+	fail := make([]T, 0, len(elems)/2)
+
+	for _, info := range elems {
+		if predicate(info) {
+			success = append(success, info)
+		} else {
+			fail = append(fail, info)
+		}
+	}
+
+	if len(success) == 0 {
+		success = nil
+	} else {
+		success = success[:len(success):len(success)]
+	}
+
+	if len(fail) == 0 {
+		fail = nil
+	} else {
+		fail = fail[:len(fail):len(fail)]
+	}
+
+	return success, fail
+}

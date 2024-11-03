@@ -65,6 +65,8 @@ func ExistsSpecific(loc string, want_dir bool) (bool, error) {
 //
 // Returns:
 //   - error: Returns an error if 'files' is nil or if there is an error reading a directory.
+//
+// Deprecated: This is not used anywhere in the codebase.
 func ScanDir(loc string, files *[]string, p func(path string) bool) error {
 	if p == nil {
 		return nil
