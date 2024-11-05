@@ -1,10 +1,16 @@
-package trees
+package tree
 
-import (
-	"errors"
-	"iter"
-	"slices"
-)
+import "errors"
+
+// viewT is for internal use only.
+type viewT struct{}
+
+// View is the namespace for view functions.
+var View viewT
+
+func init() {
+	View = viewT{}
+}
 
 var (
 	// ErrEarlyExit occurs when the traversal should stop early without error.
@@ -21,9 +27,9 @@ func init() {
 }
 
 // ViewElem is an element of a view.
-type ViewElem[T any] struct {
+type ViewElem struct {
 	// node is the node of the view.
-	node T
+	node *Node
 
 	// seen is a flag that indicates if the node has been visited.
 	seen bool
@@ -35,9 +41,9 @@ type ViewElem[T any] struct {
 //   - node: The node of the view.
 //
 // Returns:
-//   - *ViewElem[T]: The new view element. Never returns nil.
-func NewViewElem[T any](node T) *ViewElem[T] {
-	return &ViewElem[T]{
+//   - *ViewElem: The new view element. Never returns nil.
+func NewViewElem(node *Node) *ViewElem {
+	return &ViewElem{
 		node: node,
 		seen: false,
 	}
@@ -53,7 +59,7 @@ func NewViewElem[T any](node T) *ViewElem[T] {
 //
 // Errors:
 //   - ErrEarlyExit: The traversal should stop early without error.
-type VisitFn[T any] func(node T) error
+type VisitFn func(node *Node) error
 
 // PreorderView performs a preorder traversal without using recursion of the tree; stopping at the
 // first error encountered.
@@ -69,18 +75,14 @@ type VisitFn[T any] func(node T) error
 //   - If tree is nil or if visit is nil, then the traversal won't be performed but a nil error will
 //     be returned.
 //   - Nil children will be ignored.
-func PreorderView[T interface {
-	BackwardChild() iter.Seq[T]
-
-	TreeNoder
-}](tree Tree[T], visit VisitFn[T]) error {
+func (viewT) Preorder(tree *Tree, visit VisitFn) error {
 	if tree == nil || visit == nil {
 		return nil
 	}
 
 	root := tree.Root()
 
-	stack := []T{root}
+	stack := []*Node{root}
 	var err error
 
 	for len(stack) > 0 {
@@ -92,8 +94,9 @@ func PreorderView[T interface {
 			break
 		}
 
-		children := slices.Collect(top.BackwardChild())
-		stack = append(stack, children...)
+		for c := top.LastChild; c != nil; c = c.PrevSibling {
+			stack = append(stack, c)
+		}
 	}
 
 	if err == ErrEarlyExit {
@@ -120,16 +123,12 @@ func PreorderView[T interface {
 //   - Nil children will be ignored.
 //   - Stops traversal early if the visit function returns an error, except for ErrEarlyExit which is
 //     ignored.
-func PostorderView[T interface {
-	BackwardChild() iter.Seq[T]
-
-	TreeNoder
-}](tree Tree[T], visit VisitFn[T]) error {
+func (viewT) Postorder(tree *Tree, visit VisitFn) error {
 	if tree == nil || visit == nil {
 		return nil
 	}
 
-	stack := []*ViewElem[T]{
+	stack := []*ViewElem{
 		NewViewElem(tree.Root()),
 	}
 
@@ -151,12 +150,10 @@ func PostorderView[T interface {
 
 		stack[len(stack)-1].seen = true
 
-		children := slices.Collect(top.node.BackwardChild())
+		var elems []*ViewElem
 
-		elems := make([]*ViewElem[T], 0, len(children))
-
-		for _, child := range children {
-			elem := NewViewElem(child)
+		for c := top.node.LastChild; c != nil; c = c.PrevSibling {
+			elem := NewViewElem(c)
 			elems = append(elems, elem)
 		}
 
@@ -184,12 +181,13 @@ func PostorderView[T interface {
 //   - If node is a leaf (no children), it will directly call visit.
 //   - If the visit function returns an error, traversal stops immediately.
 //   - If the visit function returns ErrEarlyExit, it is ignored and traversal continues.
-func inorderView[T interface {
-	Child() iter.Seq[T]
+func inorderView(node *Node, visit VisitFn) error {
+	var children []*Node
 
-	TreeNoder
-}](node T, visit VisitFn[T]) error {
-	children := slices.Collect(node.Child())
+	for c := node.FirstChild; c != nil; c = c.NextSibling {
+		children = append(children, c)
+	}
+
 	if len(children) == 0 {
 		err := visit(node)
 		return err
@@ -238,11 +236,7 @@ func inorderView[T interface {
 //   - Nil children will be ignored.
 //   - If the visit function returns an error, traversal stops immediately.
 //   - If the visit function returns ErrEarlyExit, it is ignored and traversal continues.
-func Inorder[T interface {
-	Child() iter.Seq[T]
-
-	TreeNoder
-}](tree Tree[T], visit VisitFn[T]) error {
+func (viewT) Inorder(tree *Tree, visit VisitFn) error {
 	if tree == nil || visit == nil {
 		return nil
 	}
@@ -272,16 +266,12 @@ func Inorder[T interface {
 //   - Nil children will be ignored.
 //   - Stops traversal early if the visit function returns an error, except for ErrEarlyExit which is
 //     ignored.
-func BFS[T interface {
-	Child() iter.Seq[T]
-
-	TreeNoder
-}](tree Tree[T], visit VisitFn[T]) error {
+func (viewT) BFS(tree *Tree, visit VisitFn) error {
 	if tree == nil || visit == nil {
 		return nil
 	}
 
-	queue := []T{tree.Root()}
+	queue := []*Node{tree.Root()}
 	var err error
 
 	for len(queue) > 0 {
@@ -293,8 +283,9 @@ func BFS[T interface {
 			break
 		}
 
-		children := slices.Collect(top.Child())
-		queue = append(queue, children...)
+		for c := top.FirstChild; c != nil; c = c.NextSibling {
+			queue = append(queue, c)
+		}
 	}
 
 	if err == ErrEarlyExit {
@@ -320,15 +311,12 @@ func BFS[T interface {
 //   - Nil children will be ignored.
 //   - Stops traversal early if the visit function returns an error, except for ErrEarlyExit which is
 //     ignored.
-func DFS[T interface {
-	BackwardChild() iter.Seq[T]
-	TreeNoder
-}](tree Tree[T], visit VisitFn[T]) error {
+func (viewT) DFS(tree *Tree, visit VisitFn) error {
 	if tree == nil || visit == nil {
 		return nil
 	}
 
-	stack := []*ViewElem[T]{
+	stack := []*ViewElem{
 		NewViewElem(tree.Root()),
 	}
 	var err error
@@ -349,12 +337,10 @@ func DFS[T interface {
 
 		stack[len(stack)-1].seen = true
 
-		children := slices.Collect(top.node.BackwardChild())
+		var elems []*ViewElem
 
-		elems := make([]*ViewElem[T], 0, len(children))
-
-		for _, child := range children {
-			elem := NewViewElem(child)
+		for c := top.node.LastChild; c != nil; c = c.PrevSibling {
+			elem := NewViewElem(c)
 			elems = append(elems, elem)
 		}
 
