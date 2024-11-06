@@ -2,6 +2,7 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -192,5 +193,67 @@ func NewErrNotAsExpected(quote bool, kind string, got string, expecteds ...strin
 		Kind:      kind,
 		Expecteds: unique,
 		Got:       got,
+	}
+}
+
+// ErrInvalidType occurs when a type is not as expected.
+type ErrInvalidType struct {
+	// Types are the expected types.
+	Types []any
+
+	// Got is the actual type.
+	Got any
+}
+
+// Error implements the error interface.
+func (e ErrInvalidType) Error() string {
+	var expected string
+
+	switch len(e.Types) {
+	case 0:
+		expected = "no types"
+	case 1:
+		expected = fmt.Sprintf("%T", e.Types[0])
+	default:
+		elems := make([]string, 0, len(e.Types))
+
+		for _, elem := range e.Types {
+			elems = append(elems, fmt.Sprintf("%T", elem))
+		}
+
+		expected = EitherOrString(elems)
+	}
+
+	var got string
+
+	if e.Got == nil {
+		got = "<nil>"
+	} else {
+		got = fmt.Sprintf("%T", e.Got)
+	}
+
+	return "want " + expected + ", got " + got
+}
+
+// NewErrInvalidType creates a new ErrInvalidType error with the specified expected types and actual type.
+//
+// Parameters:
+//   - wants: The expected types.
+//   - got: The actual type.
+//
+// Returns:
+//   - error: The new ErrInvalidType error. Never returns nil.
+//
+// Format:
+//
+//	"want <want>, got <got>"
+//
+// Where:
+//   - <want>: The expected type.
+//   - <got>: The actual type. If nil, "<nil>" is used instead.
+func NewErrInvalidType(got any, wants ...any) error {
+	return &ErrInvalidType{
+		Types: wants,
+		Got:   got,
 	}
 }

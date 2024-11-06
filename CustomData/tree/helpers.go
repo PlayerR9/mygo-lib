@@ -2,6 +2,8 @@ package tree
 
 import (
 	"io"
+
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 var (
@@ -161,4 +163,65 @@ func Equals(tree, other *Tree) bool {
 	}
 
 	return true
+}
+
+// Get returns the value of the node if it is of type T, or an error if the node is nil or the
+// information of the node is not of type T.
+//
+// Parameters:
+//   - node: The node to get the value of.
+//
+// Returns:
+//   - T: The value of the node if the node is not nil and the information of the node is of type T.
+//   - error: An error if the node is nil, or the information of the node is not of type T.
+//
+// Errors:
+//   - common.ErrBadParam: If the node is nil.
+//   - common.ErrInvalidType: If the information of the node is not of type T, including if node.Info is nil.
+func Get[T Infoer](node *Node) (T, error) {
+	if node == nil {
+		return *new(T), common.NewErrNilParam("node")
+	}
+
+	info := node.Info
+	if info == nil {
+		return *new(T), common.NewErrInvalidType(nil, *new(T))
+	}
+
+	v, ok := info.(T)
+	if !ok {
+		return *new(T), common.NewErrInvalidType(info, v)
+	}
+
+	return v, nil
+}
+
+// MustGet returns the value of the node if it is of type T, or panics if the node is nil or the
+// information of the node is not of type T.
+//
+// Parameters:
+//   - node: The node to get the value of.
+//
+// Panics:
+//   - common.ErrNilParam: If the node is nil.
+//   - common.ErrInvalidType: If the information of the node is not of type T, including if node.Info is nil.
+//
+// Returns:
+//   - T: The value of the node if the node is not nil and the information of the node is of type T.
+func MustGet[T Infoer](node *Node) T {
+	if node == nil {
+		panic(common.NewErrNilParam("node"))
+	}
+
+	info := node.Info
+	if info == nil {
+		panic(common.NewErrInvalidType(nil, *new(T)))
+	}
+
+	v, ok := info.(T)
+	if !ok {
+		panic(common.NewErrInvalidType(info, v))
+	}
+
+	return v
 }
