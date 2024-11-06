@@ -11,7 +11,7 @@ func TestIndicesOf(t *testing.T) {
 	type args struct {
 		slice    []string
 		sep      string
-		expected []int
+		expected []uint
 	}
 
 	tests := test.NewTests(func(args args) test.TestingFunc {
@@ -28,7 +28,7 @@ func TestIndicesOf(t *testing.T) {
 	_ = tests.AddTest("success", args{
 		slice:    []string{"a", "b", "c", "a"},
 		sep:      "a",
-		expected: []int{0, 3},
+		expected: []uint{0, 3},
 	})
 
 	_ = tests.AddTest("no match", args{

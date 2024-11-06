@@ -31,7 +31,7 @@ func Filter[T any](slice *[]T, p Predicate[T]) {
 		return
 	}
 
-	var top int
+	var top uint
 
 	for _, elem := range *slice {
 		ok := p(elem)
@@ -75,7 +75,7 @@ func Reject[T any](slice *[]T, p Predicate[T]) {
 		return
 	}
 
-	var top int
+	var top uint
 
 	for _, elem := range *slice {
 		ok := p(elem)
@@ -105,7 +105,7 @@ func RejectNils[T any](slice *[]*T) {
 		return
 	}
 
-	var top int
+	var top uint
 
 	for _, elem := range *slice {
 		if elem != nil {
@@ -138,8 +138,13 @@ func RejectNils[T any](slice *[]*T) {
 //   - If the provided slice is empty or the filter function is nil, the original slice is cleared and set to nil.
 //   - The filter function is called repeatedly with the current list of indices until it returns true or the list of indices is empty.
 //   - The filtered slice contains only the elements corresponding to the selected indices.
-func ComplexFilter[T any](slice *[]T, fn func(indices *[]int) bool) {
-	if slice == nil || len(*slice) == 0 {
+func ComplexFilter[T any](slice *[]T, fn func(indices *[]uint) bool) {
+	if slice == nil {
+		return
+	}
+
+	lenSlice := uint(len(*slice))
+	if lenSlice == 0 {
 		return
 	} else if fn == nil {
 		clear(*slice)
@@ -148,8 +153,8 @@ func ComplexFilter[T any](slice *[]T, fn func(indices *[]int) bool) {
 		return
 	}
 
-	indices := make([]int, 0, len(*slice))
-	for i := range *slice {
+	indices := make([]uint, 0, lenSlice)
+	for i := uint(0); i < lenSlice; i++ {
 		indices = append(indices, i)
 	}
 
@@ -166,7 +171,7 @@ func ComplexFilter[T any](slice *[]T, fn func(indices *[]int) bool) {
 		return
 	}
 
-	var top int
+	var top uint
 
 	for _, idx := range indices {
 		(*slice)[top] = (*slice)[idx]
@@ -199,14 +204,16 @@ func FilterIfApplicable[T any](slice *[]T, p Predicate[T]) bool {
 		return false
 	}
 
-	var top int
+	var top uint
 
 	for _, elem := range *slice {
 		ok := p(elem)
-		if ok {
-			(*slice)[top] = elem
-			top++
+		if !ok {
+			continue
 		}
+
+		(*slice)[top] = elem
+		top++
 	}
 
 	if top == 0 {
@@ -238,14 +245,16 @@ func RejectIfApplicable[T any](slice *[]T, p Predicate[T]) bool {
 		return false
 	}
 
-	var top int
+	var top uint
 
 	for _, elem := range *slice {
 		ok := p(elem)
-		if !ok {
-			(*slice)[top] = elem
-			top++
+		if ok {
+			continue
 		}
+
+		(*slice)[top] = elem
+		top++
 	}
 
 	if top == 0 {

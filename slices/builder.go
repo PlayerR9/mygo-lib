@@ -43,17 +43,10 @@ func (b Builder[T]) Build() []T {
 
 // Reset resets the builder for reuse.
 func (b *Builder[T]) Reset() {
-	if b == nil {
+	if b == nil || len(b.slice) == 0 {
 		return
 	}
 
-	if len(b.slice) > 0 {
-		zero := *new(T)
-
-		for i := range b.slice {
-			b.slice[i] = zero
-		}
-
-		b.slice = nil
-	}
+	clear(b.slice)
+	b.slice = nil
 }

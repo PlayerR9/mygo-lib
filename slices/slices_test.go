@@ -59,7 +59,7 @@ func TestMayInsert(t *testing.T) {
 func TestUniquefy(t *testing.T) {
 	type args struct {
 		Slice         []int
-		WantRemoved   int
+		WantRemoved   uint
 		ExpectedSlice []int
 	}
 
@@ -99,7 +99,7 @@ func TestMerge(t *testing.T) {
 	type args struct {
 		Slice         []int
 		From          []int
-		WantIgnored   int
+		WantIgnored   uint
 		ExpectedSlice []int
 	}
 

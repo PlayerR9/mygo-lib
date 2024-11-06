@@ -14,7 +14,7 @@ type MultiWriter struct {
 	w io.Writer
 
 	// written is the number of bytes written so far.
-	written int
+	written uint
 }
 
 // Write implements io.Writer.
@@ -26,7 +26,7 @@ func (mw *MultiWriter) Write(data []byte) (int, error) {
 	}
 
 	n, err := mw.w.Write(data)
-	mw.written += n
+	mw.written += uint(n)
 
 	if err == nil && n != len(data) {
 		err = io.ErrShortWrite
@@ -56,8 +56,8 @@ func New(w io.Writer) (*MultiWriter, error) {
 // Written returns the total number of bytes written.
 //
 // Returns:
-//   - int: The total number of bytes written.
-func (w MultiWriter) Written() int {
+//   - uint: The total number of bytes written.
+func (w MultiWriter) Written() uint {
 	return w.written
 }
 
@@ -81,7 +81,7 @@ func (w *MultiWriter) WriteBytes(data []byte) error {
 	}
 
 	n, err := w.w.Write(data)
-	w.written += n
+	w.written += uint(n)
 
 	if err == nil && n != len(data) {
 		err = io.ErrShortWrite
@@ -104,9 +104,9 @@ func (w *MultiWriter) WriteNewline() error {
 	}
 
 	n, err := w.w.Write(Newline)
-	w.written += n
+	w.written += uint(n)
 
-	if err == nil && n != NewlineLen {
+	if err == nil && n != int(NewlineLen) {
 		err = io.ErrShortWrite
 	}
 
@@ -147,7 +147,7 @@ func (w *MultiWriter) WriteMany(datas ...[]byte) error {
 	}
 
 	n, err := w.w.Write(final)
-	w.written += n
+	w.written += uint(n)
 
 	if err == nil && n != total {
 		err = io.ErrShortWrite
@@ -177,7 +177,7 @@ func (w *MultiWriter) WriteString(str string) error {
 	data := []byte(str)
 
 	n, err := w.w.Write(data)
-	w.written += n
+	w.written += uint(n)
 
 	if err == nil && n != len(data) {
 		err = io.ErrShortWrite
@@ -206,7 +206,7 @@ func (w *MultiWriter) Printf(format string, args ...any) error {
 	}
 
 	n, err := w.w.Write(data)
-	w.written += n
+	w.written += uint(n)
 
 	if err == nil && n != len(data) {
 		err = io.ErrShortWrite
@@ -233,7 +233,7 @@ func (w *MultiWriter) Print(args ...any) error {
 	}
 
 	n, err := w.w.Write(data)
-	w.written += n
+	w.written += uint(n)
 
 	if err == nil && n != len(data) {
 		err = io.ErrShortWrite
@@ -260,7 +260,7 @@ func (w *MultiWriter) Println(args ...any) error {
 	}
 
 	n, err := w.w.Write(data)
-	w.written += n
+	w.written += uint(n)
 
 	if err == nil && n != len(data) {
 		err = io.ErrShortWrite

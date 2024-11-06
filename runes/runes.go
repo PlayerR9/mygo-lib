@@ -80,22 +80,19 @@ func StringToUtf8(str string) ([]rune, error) {
 //   - count: The number of times to repeat the character.
 //
 // Returns:
-//   - []rune: The resulting slice of repeated characters.
-//   - error: An error if the count is not a non-negative integer.
-func Repeat(char rune, count int) ([]rune, error) {
-	if count < 0 {
-		return nil, common.NewErrBadParam("count", "must be non-negative")
-	} else if count == 0 {
-		return nil, nil
+//   - []rune: The resulting slice of repeated characters. Nil if count is zero.
+func Repeat(char rune, count uint) []rune {
+	if count == 0 {
+		return nil
 	}
 
 	slice := make([]rune, 0, count)
 
-	for i := 0; i < count; i++ {
+	for i := uint(0); i < count; i++ {
 		slice = append(slice, char)
 	}
 
-	return slice, nil
+	return slice
 }
 
 // NormalizeNewlines takes a slice of runes and normalizes any instances of "\r\n" into "\n".
@@ -117,15 +114,15 @@ func normalizeNewlines(chars *[]rune) error {
 
 	next_idx := indices[len(indices)-1] + 1
 
-	if next_idx >= len(*chars) {
+	if next_idx >= uint(len(*chars)) {
 		return common.NewErrAt(next_idx, NewErrNotAsExpected(true, "", nil, '\n'))
 	} else if (*chars)[next_idx] != '\n' {
 		return common.NewErrAt(next_idx, NewErrNotAsExpected(true, "", &(*chars)[next_idx], '\n'))
 	}
 
-	*chars = slices.Delete(*chars, next_idx-1, next_idx)
+	*chars = slices.Delete(*chars, int(next_idx-1), int(next_idx))
 
-	var offset int
+	var offset uint
 
 	for _, idx := range indices[:len(indices)-1] {
 		idx += 1 - offset
@@ -135,7 +132,7 @@ func normalizeNewlines(chars *[]rune) error {
 			return common.NewErrAt(idx, NewErrNotAsExpected(true, "", &char, '\n'))
 		}
 
-		*chars = slices.Delete(*chars, idx-1, idx)
+		*chars = slices.Delete(*chars, int(idx-1), int(idx))
 		offset++
 	}
 
@@ -151,16 +148,16 @@ func normalizeTabs(chars *[]rune, repl []rune) {
 		return
 	}
 
-	offset := len(repl) - 1
-	var delta int
+	offset := uint(len(repl) - 1)
+	var delta uint
 
 	for _, idx := range indices {
-		idx -= delta
+		idx += delta
 
-		*chars = slices.Delete(*chars, idx, idx+1)
-		*chars = slices.Insert(*chars, idx, repl...)
+		*chars = slices.Delete(*chars, int(idx), int(idx+1))
+		*chars = slices.Insert(*chars, int(idx), repl...)
 
-		delta -= offset
+		delta += offset
 	}
 }
 
@@ -180,11 +177,11 @@ func normalizeTabs(chars *[]rune, repl []rune) {
 //   - common.ErrBadParam: If tab_size is not positive.
 //   - ErrAt: If '\r' is not followed by '\n' at the specified index. This error wraps
 //     ErrNotAsExpected.
-func Normalize(chars *[]rune, tab_size int) error {
+func Normalize(chars *[]rune, tab_size uint) error {
 	if chars == nil || len(*chars) == 0 {
 		return nil
-	} else if tab_size <= 0 {
-		return common.NewErrBadParam("tab_size", "must be positive")
+	} else if tab_size == 0 {
+		return common.NewErrBadParam("tab_size", "must not be zero")
 	}
 
 	err := normalizeNewlines(chars)
@@ -192,7 +189,7 @@ func Normalize(chars *[]rune, tab_size int) error {
 		return err
 	}
 
-	repl, _ := Repeat(' ', tab_size)
+	repl := Repeat(' ', tab_size)
 
 	normalizeTabs(chars, repl)
 

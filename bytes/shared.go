@@ -8,47 +8,53 @@ package bytes
 //
 // Returns:
 //   - []int: The indices. Nil if no separator is found.
-func IndicesOf(slice []byte, sep []byte) []int {
-	lenSep := len(sep)
+func IndicesOf(slice []byte, sep []byte) []uint {
+	lenSep := uint(len(sep))
 	if lenSep == 0 {
 		return nil
 	}
 
-	lenSlice := len(slice)
+	lenSlice := uint(len(slice))
 	if lenSlice == 0 {
 		return nil
 	}
 
-	var count int
+	var count uint
 
-	for i := range slice {
-		if slice[i] == sep[0] {
-			count++
+	for i := uint(0); i < lenSlice; i++ {
+		if slice[i] != sep[0] {
+			continue
 		}
+
+		count++
 	}
 
 	if count == 0 {
 		return nil
 	}
 
-	indices := make([]int, 0, count)
+	indices := make([]uint, 0, count)
 
-	for i := range slice[:lenSlice-lenSep+1] {
-		if slice[i] == sep[0] {
-			indices = append(indices, i)
+	for i := uint(0); i < lenSlice-lenSep+1; i++ {
+		if slice[i] != sep[0] {
+			continue
 		}
+
+		indices = append(indices, i)
 	}
 
-	var top int
+	var top uint
 
-	for i := 1; i < lenSep; i++ {
+	for i := uint(1); i < lenSep; i++ {
 		top = 0
 
 		for _, idx := range indices {
-			if slice[idx+1] == sep[i] {
-				indices[top] = idx
-				top++
+			if slice[idx+1] != sep[i] {
+				continue
 			}
+
+			indices[top] = idx
+			top++
 		}
 
 		if top == 0 {

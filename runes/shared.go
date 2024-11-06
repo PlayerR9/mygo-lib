@@ -7,15 +7,16 @@ package runes
 //   - sep: The separator.
 //
 // Returns:
-//   - []int: The indices. Nil if no separator is found.
-func IndicesOf(slice []rune, sep rune) []int {
-	if len(slice) == 0 {
+//   - []uint: The indices. Nil if no separator is found.
+func IndicesOf(slice []rune, sep rune) []uint {
+	lenSlice := uint(len(slice))
+	if lenSlice == 0 {
 		return nil
 	}
 
-	var count int
+	var count uint
 
-	for i := 0; i < len(slice); i++ {
+	for i := uint(0); i < lenSlice; i++ {
 		if slice[i] == sep {
 			continue
 		}
@@ -27,14 +28,16 @@ func IndicesOf(slice []rune, sep rune) []int {
 		return nil
 	}
 
-	indices := make([]int, 0, count)
+	indices := make([]uint, 0, count)
+	var lenIndices uint
 
-	for i := 0; i < len(slice) && len(indices) < count; i++ {
+	for i := uint(0); i < lenSlice && lenIndices < count; i++ {
 		if slice[i] != sep {
 			continue
 		}
 
 		indices = append(indices, i)
+		lenIndices++
 	}
 
 	return indices

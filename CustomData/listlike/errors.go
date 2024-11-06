@@ -10,6 +10,13 @@ var (
 	// 	"empty stack"
 	ErrEmptyStack error
 
+	// ErrFullStack occurs when a push operation is called on a full stack.
+	// This error can be checked with the == operator.
+	//
+	// Format:
+	// 	"full stack"
+	ErrFullStack error
+
 	// ErrEmptyQueue occurs when a pop or peek operation is called on an empty queue.
 	// This error can be checked with the == operator.
 	//
@@ -27,6 +34,7 @@ var (
 
 func init() {
 	ErrEmptyStack = errors.New("empty stack")
+	ErrFullStack = errors.New("full stack")
 	ErrEmptyQueue = errors.New("empty queue")
 	ErrCannotPush = errors.New("cannot push elements: stack not accepted nor refused")
 }

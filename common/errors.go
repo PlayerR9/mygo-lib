@@ -51,7 +51,7 @@ func (e ErrMust) Unwrap() error {
 // ErrAt occurs when an error occurs at a specific index.
 type ErrAt struct {
 	// Idx is the index at which the error occurred.
-	Idx int
+	Idx uint
 
 	// Inner is the inner error.
 	Inner error
@@ -86,7 +86,7 @@ func (e ErrAt) Error() string {
 // Where:
 //   - <idx>: The index at which the error occurred.
 //   - <reason>: The reason for the error. If nil, "something went wrong" is used instead.
-func NewErrAt(idx int, inner error) error {
+func NewErrAt(idx uint, inner error) error {
 	return &ErrAt{
 		Idx:   idx,
 		Inner: inner,

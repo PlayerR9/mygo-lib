@@ -20,12 +20,12 @@ func init() {
 	DefaultBoxStyle = BoxStyle{
 		LineType: BtNormal,
 		IsHeavy:  false,
-		Padding:  [4]int{1, 1, 1, 1},
+		Padding:  [4]uint{1, 1, 1, 1},
 	}
 }
 
 // BoxBorderType is the type of the box border.
-type BoxBorderType int
+type BoxBorderType uint
 
 const (
 	// BtNormal is the normal box border type.
@@ -55,12 +55,10 @@ type BoxStyle struct {
 
 	// Padding is the padding of the box.
 	// [Top, Right, Bottom, Left]
-	Padding [4]int
+	Padding [4]uint
 }
 
 // NewBoxStyle creates a new box style.
-//
-// Negative padding are set to 0.
 //
 // Parameters:
 //   - line_type: The line type.
@@ -69,20 +67,12 @@ type BoxStyle struct {
 //
 // Returns:
 //   - BoxStyle: The new box style.
-func NewBoxStyle(line_type BoxBorderType, is_heavy bool, padding [4]int) BoxStyle {
-	for i := 0; i < 4; i++ {
-		if padding[i] < 0 {
-			padding[i] = 0
-		}
-	}
-
-	bs := BoxStyle{
+func NewBoxStyle(line_type BoxBorderType, is_heavy bool, padding [4]uint) BoxStyle {
+	return BoxStyle{
 		LineType: line_type,
 		IsHeavy:  is_heavy,
 		Padding:  padding,
 	}
-
-	return bs
 }
 
 var (
@@ -210,14 +200,14 @@ func (bs BoxStyle) SideBorder() []byte {
 //   - runes.ErrBadEncoding: If an invalid UTF-8 character is encountered.
 //   - runes.ErrAt: If '\r' is not followed by '\n' at the specified index. This error wraps
 //     ErrNotAsExpected.
-func rightMostEdge(table []byte, tab_size int) (int, error) {
+func rightMostEdge(table []byte, tab_size uint) (uint, error) {
 	if len(table) == 0 {
 		return 0, nil
-	} else if tab_size <= 0 {
-		return 0, common.NewErrBadParam("tab_size", "must be positive")
+	} else if tab_size == 0 {
+		return 0, common.NewErrBadParam("tab_size", "must not be zero")
 	}
 
-	var longest_line, current int
+	var longest_line, current uint
 
 	chars, err := gch.BytesToUtf8(table)
 	if err != nil {
@@ -263,18 +253,18 @@ func rightMostEdge(table []byte, tab_size int) (int, error) {
 //
 // Returns:
 //   - [][]byte: The aligned table.
-func alignRightEdge(table [][]byte, edge int) [][]byte {
+func alignRightEdge(table [][]byte, edge uint) [][]byte {
 	if len(table) == 0 {
 		return table
 	}
 
 	for i := 0; i < len(table); i++ {
 		curr_row := table[i]
-		curr_size := utf8.RuneCount(curr_row)
+		curr_size := uint(utf8.RuneCount(curr_row))
 
 		padding := edge - curr_size
 
-		padding_right := bytes.Repeat([]byte{' '}, padding)
+		padding_right := bytes.Repeat([]byte{' '}, int(padding))
 
 		table[i] = append(curr_row, padding_right...)
 	}
@@ -311,21 +301,15 @@ func alignRightEdge(table [][]byte, edge int) [][]byte {
 //   - runes.ErrAt: If '\r' is not followed by '\n' at the specified index. This error wraps
 //     ErrNotAsExpected.
 //   - any error returned by the underlying io.Writer.
-func (bs BoxStyle) Apply(w io.Writer, data []byte, tab_size int) (int, error) {
-	if tab_size <= 0 {
-		return 0, common.NewErrBadParam("tab_size", "must be positive")
+func (bs BoxStyle) Apply(w io.Writer, data []byte, tab_size uint) (uint, error) {
+	if tab_size == 0 {
+		return 0, common.NewErrBadParam("tab_size", "must not be zero")
 	} else if w == nil {
 		return 0, common.NewErrNilParam("w")
 	}
 
-	for i := 0; i < 4; i++ {
-		if bs.Padding[i] < 0 {
-			bs.Padding[i] = 0
-		}
-	}
-
-	left_padding := bytes.Repeat([]byte(" "), bs.Padding[3])
-	right_padding := bytes.Repeat([]byte(" "), bs.Padding[1])
+	left_padding := bytes.Repeat([]byte(" "), int(bs.Padding[3]))
+	right_padding := bytes.Repeat([]byte(" "), int(bs.Padding[1]))
 
 	tbb_char := bs.TopBorder()
 	corners := bs.Corners()
@@ -345,7 +329,7 @@ func (bs BoxStyle) Apply(w io.Writer, data []byte, tab_size int) (int, error) {
 
 	err = buff.WriteMany(
 		corners[0],
-		bytes.Repeat(tbb_char, total_width),
+		bytes.Repeat(tbb_char, int(total_width)),
 		corners[1],
 		gby.Newline,
 	)
@@ -371,7 +355,7 @@ func (bs BoxStyle) Apply(w io.Writer, data []byte, tab_size int) (int, error) {
 
 	err = buff.WriteMany(
 		corners[2],
-		bytes.Repeat(tbb_char, total_width),
+		bytes.Repeat(tbb_char, int(total_width)),
 		corners[3],
 	)
 	return buff.Written(), err
