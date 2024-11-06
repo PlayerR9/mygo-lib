@@ -15,10 +15,12 @@ func IndicesOf(slice []string, sep string) []int {
 
 	var count int
 
-	for i := range slice {
-		if slice[i] == sep {
-			count++
+	for i := 0; i < len(slice); i++ {
+		if slice[i] != sep {
+			continue
 		}
+
+		count++
 	}
 
 	if count == 0 {
@@ -27,10 +29,12 @@ func IndicesOf(slice []string, sep string) []int {
 
 	indices := make([]int, 0, count)
 
-	for i := range slice {
-		if slice[i] == sep {
-			indices = append(indices, i)
+	for i := 0; i < len(slice) && len(indices) < count; i++ {
+		if slice[i] != sep {
+			continue
 		}
+
+		indices = append(indices, i)
 	}
 
 	return indices

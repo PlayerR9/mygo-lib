@@ -80,10 +80,13 @@ func StringToUtf8(str string) ([]rune, error) {
 //   - count: The number of times to repeat the character.
 //
 // Returns:
-//   - []rune: The resulting slice of repeated characters. Nil if count is less than or equal to 0.
-func Repeat(char rune, count int) []rune {
-	if count <= 0 {
-		return nil
+//   - []rune: The resulting slice of repeated characters.
+//   - error: An error if the count is not a non-negative integer.
+func Repeat(char rune, count int) ([]rune, error) {
+	if count < 0 {
+		return nil, common.NewErrBadParam("count", "must be non-negative")
+	} else if count == 0 {
+		return nil, nil
 	}
 
 	slice := make([]rune, 0, count)
@@ -92,7 +95,7 @@ func Repeat(char rune, count int) []rune {
 		slice = append(slice, char)
 	}
 
-	return slice
+	return slice, nil
 }
 
 // NormalizeNewlines takes a slice of runes and normalizes any instances of "\r\n" into "\n".
@@ -189,7 +192,7 @@ func Normalize(chars *[]rune, tab_size int) error {
 		return err
 	}
 
-	repl := Repeat(' ', tab_size)
+	repl, _ := Repeat(' ', tab_size)
 
 	normalizeTabs(chars, repl)
 
