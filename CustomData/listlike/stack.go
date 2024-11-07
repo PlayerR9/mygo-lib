@@ -12,7 +12,11 @@ type Stack[T any] interface {
 	//   - elem: The element to add.
 	//
 	// Returns:
-	//   - error: An error of type common.ErrNilReceiver if the receiver is nil.
+	//   - error: An error if the element could not be added to the stack.
+	//
+	// Errors:
+	// 	- common.ErrNilReceiver: If the receiver is nil.
+	// 	- ErrFullStack: If the stack has a capacity and that capacity has been reached.
 	Push(elem T) error
 
 	// Pop removes the top element from the stack.
@@ -131,3 +135,19 @@ func Push[T any](stack Stack[T], elems ...T) (uint, error) {
 
 	return lenElems, nil
 }
+
+/*
+func Slice[T any](stack Stack[T]) []T {
+	for {
+		elem, err := stack.Pop()
+		if err == ErrEmptyStack {
+			break
+		} else if err != nil {
+
+		}
+
+		if err != nil {
+			break
+		}
+	}
+} */

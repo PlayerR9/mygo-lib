@@ -3,6 +3,8 @@ package listlike
 import (
 	"slices"
 	"testing"
+
+	test "github.com/PlayerR9/go-verify/test"
 )
 
 func TestPushNoCap(t *testing.T) {
@@ -10,46 +12,52 @@ func TestPushNoCap(t *testing.T) {
 		Elems []int
 	}
 
-	tests := []args{
-		{
-			Elems: []int{1, 2, 3, 4, 5},
-		},
-		{
-			Elems: nil,
-		},
-	}
+	tests := test.NewTests(func(args args) test.TestingFunc {
+		return func(t *testing.T) {
+			stack := NewArrayStack(NoCapacity, args.Elems...)
 
-	for _, test := range tests {
-		stack := NewArrayStack(NoCapacity, test.Elems...)
+			var popped []int
 
-		var popped []int
+			for !stack.IsEmpty() {
+				top, err := stack.Pop()
+				if err != nil {
+					t.Errorf("want no error, got %v", err)
 
-		for !stack.IsEmpty() {
-			top, err := stack.Pop()
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+					return
+				}
+
+				popped = append(popped, top)
 			}
 
-			popped = append(popped, top)
+			ok := slices.Equal(popped, args.Elems)
+			if !ok {
+				t.Errorf("want %v, got %v", args.Elems, popped)
+			}
 		}
+	})
 
-		if len(popped) != len(test.Elems) {
-			t.Fatalf("unexpected length: %v", len(popped))
-		}
+	_ = tests.AddTest("sucess", args{
+		Elems: []int{1, 2, 3, 4, 5},
+	})
 
-		ok := slices.Equal(popped, test.Elems)
-		if !ok {
-			t.Fatalf("unexpected elements: %v", popped)
-		}
-	}
+	_ = tests.AddTest("no elements", args{
+		Elems: nil,
+	})
+
+	_ = tests.Run(t)
 }
 
 func TestPushWithCap(t *testing.T) {
-	elems := []int{1, 2, 3, 4, 5}
+	const (
+		Cap uint8 = 5
+	)
 
-	stack := NewArrayStack(5, elems...)
+	var (
+		Elems []int = []int{1, 2, 3, 4, 5}
+	)
 
-	var count int
+	stack := NewArrayStack(Cap, Elems...)
+	var popped []int
 
 	for !stack.IsEmpty() {
 		top, err := stack.Pop()
@@ -57,29 +65,26 @@ func TestPushWithCap(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if top != elems[count] {
-			t.Fatalf("unexpected element: %v", top)
-		}
-
-		count++
+		popped = append(popped, top)
 	}
 
-	if count != len(elems) {
-		t.Fatalf("unexpected count: %v", count)
+	ok := slices.Equal(popped, Elems)
+	if !ok {
+		t.Fatalf("want %v, got %v", Elems, popped)
 	}
 
 	Reset(stack)
 
-	elems = []int{1, 2, 3, 4, 5, 6}
+	Elems = []int{1, 2, 3, 4, 5, 6}
 
-	for _, elem := range elems[:len(elems)-1] {
+	for _, elem := range Elems[:len(Elems)-1] {
 		err := stack.Push(elem)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 	}
 
-	err := stack.Push(elems[len(elems)-1])
+	err := stack.Push(Elems[len(Elems)-1])
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	} else if err != ErrFullStack {
