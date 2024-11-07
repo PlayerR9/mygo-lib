@@ -2,43 +2,100 @@ package listlike
 
 import (
 	"slices"
-
-	"github.com/PlayerR9/mygo-lib/common"
+	"testing"
 )
 
-const (
-	// NoCapacity is a sentinel value for a stack with no capacity.
-	NoCapacity uint8 = 0xFF
-)
-
-// ArrayStack is a simple implementation of a stack that is backed by an array.
-type ArrayStack[T any] struct {
-	// slice is the internal slice.
-	slice []T
-
-	// capacity is the maximum capacity of the stack.
-	capacity uint8
-}
-
-// Push implements the Stack interface.
-func (s *ArrayStack[T]) Push(elem T) error {
-	if s == nil {
-		return common.ErrNilReceiver
-	} else if s.capacity != NoCapacity && uint8(len(s.slice)) == s.capacity {
-		return ErrFullStack
+func TestPushNoCap(t *testing.T) {
+	type args struct {
+		Elems []int
 	}
 
-	s.slice = append(s.slice, elem)
+	tests := []args{
+		{
+			Elems: []int{1, 2, 3, 4, 5},
+		},
+		{
+			Elems: nil,
+		},
+	}
 
-	return nil
+	for _, test := range tests {
+		stack := NewArrayStack(NoCapacity, test.Elems...)
+
+		var popped []int
+
+		for !stack.IsEmpty() {
+			top, err := stack.Pop()
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			popped = append(popped, top)
+		}
+
+		if len(popped) != len(test.Elems) {
+			t.Fatalf("unexpected length: %v", len(popped))
+		}
+
+		ok := slices.Equal(popped, test.Elems)
+		if !ok {
+			t.Fatalf("unexpected elements: %v", popped)
+		}
+	}
 }
 
+func TestPushWithCap(t *testing.T) {
+	elems := []int{1, 2, 3, 4, 5}
+
+	stack := NewArrayStack(5, elems...)
+
+	var count int
+
+	for !stack.IsEmpty() {
+		top, err := stack.Pop()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if top != elems[count] {
+			t.Fatalf("unexpected element: %v", top)
+		}
+
+		count++
+	}
+
+	if count != len(elems) {
+		t.Fatalf("unexpected count: %v", count)
+	}
+
+	Reset(stack)
+
+	elems = []int{1, 2, 3, 4, 5, 6}
+
+	for _, elem := range elems[:len(elems)-1] {
+		err := stack.Push(elem)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	}
+
+	err := stack.Push(elems[len(elems)-1])
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	} else if err != ErrFullStack {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+/*
+func TestPop(t *testing.T) {
+
 // Pop implements the Stack interface.
-func (s *ArrayStack[T]) Pop() (T, error) {
+func (s *ArrayStack) Pop() (any, error) {
 	if s == nil {
-		return *new(T), common.ErrNilReceiver
+		return nil, common.ErrNilReceiver
 	} else if len(s.slice) == 0 {
-		return *new(T), ErrEmptyStack
+		return nil, ErrEmptyStack
 	}
 
 	elem := s.slice[len(s.slice)-1]
@@ -46,11 +103,9 @@ func (s *ArrayStack[T]) Pop() (T, error) {
 
 	return elem, nil
 }
-
-// IsEmpty implements the Stack interface.
-func (s ArrayStack[T]) IsEmpty() bool {
-	return len(s.slice) == 0
 }
+
+func TestNewArrayStack(t *testing.T) {
 
 // NewArrayStack creates a new stack from a slice.
 //
@@ -64,8 +119,8 @@ func (s ArrayStack[T]) IsEmpty() bool {
 //
 // If the length of elems is larger than the given capacity, the capacity will be set
 // to NoCapacity and the stack will have no capacity.
-func NewArrayStack[T any](cap uint8, elems ...T) Stack[T] {
-	stack := &ArrayStack[T]{
+func NewArrayStack(cap uint8, elems ...any) Stack {
+	stack := &ArrayStack{
 		slice:    nil,
 		capacity: cap,
 	}
@@ -77,6 +132,10 @@ func NewArrayStack[T any](cap uint8, elems ...T) Stack[T] {
 
 	return stack
 }
+
+}
+
+func TestPushMany(t *testing.T) {
 
 // PushMany adds multiple elements to the stack. If it has a capacity and the total
 // length of the stack's underlying slice and the provided slice is larger than the
@@ -91,7 +150,7 @@ func NewArrayStack[T any](cap uint8, elems ...T) Stack[T] {
 //
 // Errors:
 //   - common.ErrNilReceiver: If the receiver is nil.
-func (s *ArrayStack[T]) PushMany(elems []T) (uint, error) {
+func (s *ArrayStack) PushMany(elems []any) (uint, error) {
 	lenElems := uint(len(elems))
 	if lenElems == 0 {
 		return 0, nil
@@ -115,8 +174,12 @@ func (s *ArrayStack[T]) PushMany(elems []T) (uint, error) {
 	return lenElems, err
 }
 
+}
+
+func TestReset(t *testing.T) {
+
 // Reset resets the stack for reuse. Does nothing if the receiver is nil.
-func (s *ArrayStack[T]) Reset() {
+func (s *ArrayStack) Reset() {
 	if s == nil || len(s.slice) == 0 {
 		return
 	}
@@ -126,19 +189,26 @@ func (s *ArrayStack[T]) Reset() {
 	if s.capacity == NoCapacity {
 		s.slice = nil
 	} else {
-		s.slice = make([]T, 0, s.capacity)
+		s.slice = make([]any, 0, s.capacity)
 	}
 }
+
+}
+
+func TestPeek(t *testing.T) {
 
 // Peek returns the element at the top of the stack without removing it.
 //
 // Returns:
-//   - T: The element at the top of the stack. Nil if the stack is empty.
+//   - any: The element at the top of the stack. Nil if the stack is empty.
 //   - error: An error of type ErrEmptyStack if the stack is empty.
-func (s ArrayStack[T]) Peek() (T, error) {
+func (s ArrayStack) Peek() (any, error) {
 	if len(s.slice) == 0 {
-		return *new(T), ErrEmptyStack
+		return nil, ErrEmptyStack
 	}
 
 	return s.slice[len(s.slice)-1], nil
 }
+
+}
+*/

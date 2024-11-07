@@ -5,7 +5,7 @@ import (
 )
 
 // Stack is an interface defining a stack.
-type Stack interface {
+type Stack[T any] interface {
 	// Push adds an element on the top of the stack.
 	//
 	// Parameters:
@@ -13,24 +13,44 @@ type Stack interface {
 	//
 	// Returns:
 	//   - error: An error of type common.ErrNilReceiver if the receiver is nil.
-	Push(elem any) error
+	Push(elem T) error
 
 	// Pop removes the top element from the stack.
 	//
 	// Returns:
-	//   - any: The element that was removed. Nil if no element was removed.
+	//   - T: The element that was removed. Nil if no element was removed.
 	//   - error: An error if the element could not be removed from the stack.
 	//
 	// Errors:
 	//   - ErrEmptyStack: If the stack is empty.
 	//   - common.ErrNilReceiver: If the receiver is nil.
-	Pop() (any, error)
+	Pop() (T, error)
 
 	// IsEmpty checks whether the stack is empty.
 	//
 	// Returns:
 	//   - bool: True if the stack is empty, false otherwise.
 	IsEmpty() bool
+}
+
+// Reset resets the stack for reuse. Does nothing if the parameter is nil.
+//
+// Parameters:
+//   - stack: The stack to be reset.
+//
+// Panics:
+//   - common.ErrMethodNotImpl: If the stack does not implement the Reset() method.
+func Reset[T any](stack Stack[T]) {
+	if stack == nil {
+		return
+	}
+
+	s, ok := stack.(interface{ Reset() })
+	if !ok {
+		panic(common.NewErrMethodNotImpl("stack.Reset()", stack))
+	}
+
+	s.Reset()
 }
 
 // Peek calls the `Peek()` method on the given stack if it has one, or pops the top
@@ -47,19 +67,19 @@ type Stack interface {
 //   - common.ErrNilParam: If the stack is nil.
 //   - ErrEmptyStack: If the stack is empty.
 //   - any other error returned by the `Peek()` or `Pop()` methods.
-func Peek(stack Stack) (any, error) {
+func Peek[T any](stack Stack[T]) (T, error) {
 	if stack == nil {
-		return nil, common.NewErrNilParam("stack")
+		return *new(T), common.NewErrNilParam("stack")
 	}
 
-	s, ok := stack.(interface{ Peek() (any, error) })
+	s, ok := stack.(interface{ Peek() (T, error) })
 	if ok {
 		return s.Peek()
 	}
 
 	top, err := stack.Pop()
 	if err != nil {
-		return nil, err
+		return *new(T), err
 	}
 
 	err = stack.Push(top)
@@ -89,7 +109,7 @@ func Peek(stack Stack) (any, error) {
 // Behaviours:
 //   - Elements are added in reverse order. This means that the first element in the slice
 //     is also the first one got upon calling the `Pop()` method.
-func Push(stack Stack, elems ...any) (uint, error) {
+func Push[T any](stack Stack[T], elems ...T) (uint, error) {
 	lenElems := uint(len(elems))
 	if lenElems == 0 {
 		return 0, nil
@@ -97,7 +117,7 @@ func Push(stack Stack, elems ...any) (uint, error) {
 		return 0, common.NewErrNilParam("stack")
 	}
 
-	s, ok := stack.(interface{ PushMany([]any) (uint, error) })
+	s, ok := stack.(interface{ PushMany([]T) (uint, error) })
 	if ok {
 		return s.PushMany(elems)
 	}
