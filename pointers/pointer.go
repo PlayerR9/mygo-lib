@@ -23,23 +23,23 @@ func RejectNils[T Pointer](slice *[]T) {
 		return
 	}
 
-	var top int
+	var top uint
 
 	for _, elem := range *slice {
 		ok := elem.IsNil()
-		if !ok {
-			(*slice)[top] = elem
-			top++
+		if ok {
+			continue
 		}
+
+		(*slice)[top] = elem
+		top++
 	}
 
 	if top == 0 {
 		clear(*slice)
 		*slice = nil
-
-		return
+	} else {
+		clear((*slice)[top:])
+		*slice = (*slice)[:top:top]
 	}
-
-	clear((*slice)[top:])
-	*slice = (*slice)[:top:top]
 }

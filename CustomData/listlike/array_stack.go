@@ -11,9 +11,7 @@ const (
 	NoCapacity uint8 = 0xFF
 )
 
-// ArrayStack is a simple implementation of a stack that is backed by an array. An empty
-// stack can either be created with the `var stack ArrayStack` syntax or with the
-// `new(ArrayStack)` constructor.
+// ArrayStack is a simple implementation of a stack that is backed by an array.
 type ArrayStack struct {
 	// slice is the internal slice.
 	slice []any
@@ -49,15 +47,6 @@ func (s *ArrayStack) Pop() (any, error) {
 	return elem, nil
 }
 
-// Peek implements the Stack interface.
-func (s ArrayStack) Peek() (any, error) {
-	if len(s.slice) == 0 {
-		return nil, ErrEmptyStack
-	}
-
-	return s.slice[len(s.slice)-1], nil
-}
-
 // IsEmpty implements the Stack interface.
 func (s ArrayStack) IsEmpty() bool {
 	return len(s.slice) == 0
@@ -76,34 +65,32 @@ func (s ArrayStack) IsEmpty() bool {
 // If the length of elems is larger than the given capacity, the capacity will be set
 // to NoCapacity and the stack will have no capacity.
 func NewArrayStack(cap uint8, elems ...any) Stack {
-	if len(elems) == 0 {
-		return &ArrayStack{
-			slice:    nil,
-			capacity: cap,
-		}
-	}
-
-	if cap != NoCapacity && len(elems) >= int(NoCapacity) {
-		cap = NoCapacity
-	}
-
-	var slice []any
-
-	if cap == NoCapacity {
-		slice = make([]any, len(elems))
-	} else {
-		slice = make([]any, len(elems), cap)
-	}
-
-	copy(slice, elems)
-	slices.Reverse(slice[:len(elems)])
-
-	return &ArrayStack{
-		slice:    slice,
+	stack := &ArrayStack{
+		slice:    nil,
 		capacity: cap,
 	}
+
+	_, err := stack.PushMany(elems)
+	if err != nil {
+		return nil
+	}
+
+	return stack
 }
 
+// PushMany adds multiple elements to the stack. If it has a capacity and the total
+// length of the stack's underlying slice and the provided slice is larger than the
+// capacity, the elements are truncated to fit the capacity.
+//
+// Parameters:
+//   - elems: The elements to add.
+//
+// Returns:
+//   - uint: The number of elements successfully pushed onto the stack.
+//   - error: An error if the receiver is nil.
+//
+// Errors:
+//   - common.ErrNilReceiver: If the receiver is nil.
 func (s *ArrayStack) PushMany(elems []any) (uint, error) {
 	lenElems := uint(len(elems))
 	if lenElems == 0 {
@@ -112,15 +99,20 @@ func (s *ArrayStack) PushMany(elems []any) (uint, error) {
 		return 0, common.ErrNilReceiver
 	}
 
-	for i := uint(0); i < lenElems; i++ {
-		if s.capacity != NoCapacity && uint8(len(s.slice)) == s.capacity {
-			return i, ErrFullStack
-		}
+	originalLen := uint(len(s.slice))
+	totalLen := originalLen + lenElems
 
-		s.slice = append(s.slice, elems[i])
+	var err error
+
+	if s.capacity != NoCapacity && totalLen > uint(s.capacity) {
+		lenElems = uint(s.capacity) - originalLen
+		err = ErrFullStack
 	}
 
-	return lenElems, nil
+	s.slice = append(s.slice, elems[:lenElems]...)
+	slices.Reverse(s.slice[originalLen:])
+
+	return lenElems, err
 }
 
 // Reset resets the stack for reuse. Does nothing if the receiver is nil.
@@ -136,4 +128,17 @@ func (s *ArrayStack) Reset() {
 	} else {
 		s.slice = make([]any, 0, s.capacity)
 	}
+}
+
+// Peek returns the element at the top of the stack without removing it.
+//
+// Returns:
+//   - any: The element at the top of the stack. Nil if the stack is empty.
+//   - error: An error of type ErrEmptyStack if the stack is empty.
+func (s ArrayStack) Peek() (any, error) {
+	if len(s.slice) == 0 {
+		return nil, ErrEmptyStack
+	}
+
+	return s.slice[len(s.slice)-1], nil
 }

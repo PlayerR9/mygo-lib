@@ -44,7 +44,7 @@ func LogSeq(logger *log.Logger, title string, seq iter.Seq[string]) error {
 
 	w := logger.Writer()
 
-	var idx int
+	var idx uint
 
 	for str := range seq {
 		data := []byte(str + "\n")

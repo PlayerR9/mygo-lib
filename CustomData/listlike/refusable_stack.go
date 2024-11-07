@@ -1,7 +1,6 @@
 package listlike
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/PlayerR9/mygo-lib/common"
@@ -15,24 +14,13 @@ type RefusableStack[T any] struct {
 	slice []T
 
 	// top is the top of the stack.
-	top int
-}
+	top uint
 
-// Validate implements the assert.Validater interface.
-//
-// An instance of RefusableStack is valid if and only if the following conditions are met:
-// - top >= 0
-// - top <= len(slice)
-func (s RefusableStack[T]) Validate() error {
-	if s.top < 0 || s.top > len(s.slice) {
-		return fmt.Errorf("%q is not in [%d, %d]", "top", 0, len(s.slice))
-	}
-
-	return nil
+	lenSlice uint
 }
 
 // Size implements the Lister interface.
-func (s RefusableStack[T]) Size() int {
+func (s RefusableStack[T]) Size() uint {
 	return s.top
 }
 
@@ -43,14 +31,13 @@ func (s RefusableStack[T]) IsEmpty() bool {
 
 // Reset implements the Lister interface.
 func (s *RefusableStack[T]) Reset() {
-	if s == nil {
+	if s == nil || s.lenSlice == 0 {
 		return
 	}
 
-	if len(s.slice) > 0 {
-		clear(s.slice)
-		s.slice = nil
-	}
+	clear(s.slice)
+	s.slice = nil
+	s.lenSlice = 0
 
 	s.top = 0
 }
@@ -65,15 +52,21 @@ func (s *RefusableStack[T]) Reset() {
 //
 // WARNING: As a side-effect, the original list will be reversed.
 func NewRefusableStack[T any](elems []T) *RefusableStack[T] {
-	if len(elems) == 0 {
-		return &RefusableStack[T]{}
+	lenElems := uint(len(elems))
+	if lenElems == 0 {
+		return &RefusableStack[T]{
+			slice:    nil,
+			lenSlice: lenElems,
+			top:      0,
+		}
 	}
 
 	slices.Reverse(elems)
 
 	return &RefusableStack[T]{
-		slice: elems,
-		top:   len(elems),
+		slice:    elems,
+		lenSlice: lenElems,
+		top:      lenElems,
 	}
 }
 
@@ -89,14 +82,13 @@ func (s *RefusableStack[T]) Push(elem T) error {
 		return common.ErrNilReceiver
 	}
 
-	// common.Validate(s)
-
-	if s.top != len(s.slice) {
+	if s.top != s.lenSlice {
 		return ErrCannotPush
 	}
 
 	s.slice = append(s.slice, elem)
 	s.top++
+	s.lenSlice++
 
 	return nil
 }
@@ -118,16 +110,15 @@ func (s *RefusableStack[T]) PushMany(elems []T) error {
 		return common.ErrNilReceiver
 	}
 
-	// common.Validate(s)
-
-	if s.top != len(s.slice) {
+	if s.top != s.lenSlice {
 		return ErrCannotPush
 	}
 
 	slices.Reverse(elems)
 
 	s.slice = append(s.slice, elems...)
-	s.top += len(elems)
+	s.top += uint(len(elems))
+	s.lenSlice += uint(len(elems))
 
 	return nil
 }
@@ -143,11 +134,7 @@ func (s *RefusableStack[T]) PushMany(elems []T) error {
 func (s *RefusableStack[T]) Pop() (T, error) {
 	if s == nil {
 		return *new(T), ErrEmptyStack
-	}
-
-	// common.Validate(s)
-
-	if s.top == 0 {
+	} else if s.top == 0 {
 		return *new(T), ErrEmptyStack
 	}
 
@@ -180,8 +167,9 @@ func (s *RefusableStack[T]) Accept() {
 
 	// common.Validate(s)
 
-	if s.top != len(s.slice) {
+	if s.top != uint(len(s.slice)) {
 		s.slice = s.slice[:s.top:s.top]
+		s.lenSlice = s.top
 	}
 }
 
@@ -192,9 +180,7 @@ func (s *RefusableStack[T]) Refuse() {
 		return
 	}
 
-	// common.Validate(s)
-
-	s.top = len(s.slice)
+	s.top = s.lenSlice
 }
 
 // RefuseOne refuses the last popped element. Does nothing if no element was popped.
@@ -203,9 +189,7 @@ func (s *RefusableStack[T]) RefuseOne() {
 		return
 	}
 
-	// common.Validate(s)
-
-	if s.top != len(s.slice) {
+	if s.top != s.lenSlice {
 		s.top++
 	}
 }
@@ -218,11 +202,11 @@ func (s *RefusableStack[T]) RefuseOne() {
 // Returns:
 //   - []T: The elements that were popped. Nil if no elements were popped.
 func (s RefusableStack[T]) Popped() []T {
-	if s.top == len(s.slice) {
+	if s.top == s.lenSlice {
 		return nil
 	}
 
-	slice := make([]T, len(s.slice)-s.top)
+	slice := make([]T, s.lenSlice-s.top)
 	copy(slice, s.slice[s.top:])
 
 	return slice

@@ -13,7 +13,7 @@ type Tree struct {
 	leaves []*Node
 
 	// size is the number of nodes in the tree.
-	size int
+	size uint
 }
 
 // String implements the fmt.Stringer interface.
@@ -54,7 +54,7 @@ func NewTree(root *Node) *Tree {
 
 	var leaves []*Node
 	stack := []*Node{root}
-	var size int
+	var size uint
 
 	for len(stack) > 0 {
 		top := stack[len(stack)-1]
@@ -91,7 +91,7 @@ func (t Tree) Root() *Node {
 // Size returns the number of nodes in the tree.
 //
 // Returns:
-//   - int: The number of nodes in the tree.
-func (t Tree) Size() int {
+//   - uint: The number of nodes in the tree.
+func (t Tree) Size() uint {
 	return t.size
 }

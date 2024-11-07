@@ -49,9 +49,9 @@ func ExistsSpecific(loc string, want_dir bool) (bool, error) {
 
 	if !errors.Is(err, os.ErrNotExist) {
 		return false, err
+	} else {
+		return false, nil
 	}
-
-	return false, nil
 }
 
 // ScanDir traverses the directory located at 'loc' and populates 'files' with paths

@@ -12,29 +12,29 @@ import (
 // either be created with the `var set OrderedSet[T]` syntax or with the
 // `new(OrderedSet[T])` constructor.
 type OrderedSet[T cmp.Ordered] struct {
-	elems []T
+	elems    []T
+	lenElems uint
 }
 
 // Size implements the Set interface.
-func (s OrderedSet[T]) Size() int {
-	return len(s.elems)
+func (s OrderedSet[T]) Size() uint {
+	return s.lenElems
 }
 
 // IsEmpty implements the Set interface.
 func (s OrderedSet[T]) IsEmpty() bool {
-	return len(s.elems) == 0
+	return s.lenElems == 0
 }
 
 // Reset implements the Set interface.
 func (s *OrderedSet[T]) Reset() {
-	if s == nil {
+	if s == nil || s.lenElems == 0 {
 		return
 	}
 
-	if len(s.elems) > 0 {
-		clear(s.elems)
-		s.elems = nil
-	}
+	clear(s.elems)
+	s.elems = nil
+	s.lenElems = 0
 }
 
 // Add implements the Set interface.
@@ -44,34 +44,19 @@ func (s *OrderedSet[T]) Add(elem T) error {
 	}
 
 	pos, ok := slices.BinarySearch(s.elems, elem)
-	if !ok {
-		s.elems = slices.Insert(s.elems, pos, elem)
-	}
-
-	return nil
-}
-
-// AddMany implements the Set interface.
-func (s *OrderedSet[T]) AddMany(elems []T) error {
-	if len(elems) == 0 {
+	if ok {
 		return nil
-	} else if s == nil {
-		return common.ErrNilReceiver
 	}
 
-	for _, k := range elems {
-		pos, ok := slices.BinarySearch(s.elems, k)
-		if !ok {
-			s.elems = slices.Insert(s.elems, pos, k)
-		}
-	}
+	s.elems = slices.Insert(s.elems, pos, elem)
+	s.lenElems++
 
 	return nil
 }
 
 // Contains implements the Set interface.
 func (s OrderedSet[T]) Contains(elem T) bool {
-	if len(s.elems) == 0 {
+	if s.lenElems == 0 {
 		return false
 	}
 
@@ -113,12 +98,17 @@ func NewOrderedSet[T cmp.Ordered](elems []T) *OrderedSet[T] {
 
 	for _, elem := range elems {
 		pos, ok := slices.BinarySearch(unique, elem)
-		if !ok {
-			unique = slices.Insert(unique, pos, elem)
+		if ok {
+			continue
 		}
+
+		unique = slices.Insert(unique, pos, elem)
 	}
 
+	lenElems := uint(len(unique))
+
 	return &OrderedSet[T]{
-		elems: unique[:len(unique):len(unique)],
+		elems:    unique[:lenElems:lenElems],
+		lenElems: lenElems,
 	}
 }

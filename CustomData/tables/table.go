@@ -13,10 +13,10 @@ type Table[T any] struct {
 	table [][]T
 
 	// width is the width of the table.
-	width int
+	width uint
 
 	// height is the height of the table.
-	height int
+	height uint
 }
 
 // NewTable creates a new Table with a width and height.
@@ -27,20 +27,10 @@ type Table[T any] struct {
 //
 // Returns:
 //   - *Table: The new Table.
-//   - error: If the table could not be created.
-//
-// Errors:
-//   - errors.BadParameterError: If width or height is negative.
-func NewTable[T any](width, height int) (*Table[T], error) {
-	if width < 0 {
-		return nil, common.NewErrBadParam("width", "must be non-negative")
-	} else if height < 0 {
-		return nil, common.NewErrBadParam("height", "must be non-negative")
-	}
-
+func NewTable[T any](width, height uint) *Table[T] {
 	table := make([][]T, 0, height)
 
-	for i := 0; i < height; i++ {
+	for i := uint(0); i < height; i++ {
 		table = append(table, make([]T, width, width))
 	}
 
@@ -48,22 +38,22 @@ func NewTable[T any](width, height int) (*Table[T], error) {
 		table:  table,
 		width:  width,
 		height: height,
-	}, nil
+	}
 }
 
 // Height returns the height of the table.
 //
 // Returns:
-//   - int: The height of the table.
-func (t Table[T]) Height() int {
+//   - uint: The height of the table.
+func (t Table[T]) Height() uint {
 	return t.height
 }
 
 // Width returns the width of the table.
 //
 // Returns:
-//   - int: The width of the table.
-func (t Table[T]) Width() int {
+//   - uint: The width of the table.
+func (t Table[T]) Width() uint {
 	return t.width
 }
 
@@ -76,8 +66,8 @@ func (t Table[T]) Width() int {
 // Returns:
 //   - T: The cell at the specified position. The zero value if the position
 //     is out of bounds.
-func (t Table[T]) CellAt(x, y int) T {
-	if x < 0 || x >= t.width || y < 0 || y >= t.height {
+func (t Table[T]) CellAt(x, y uint) T {
+	if x >= t.width || y >= t.height {
 		return *new(T)
 	}
 
@@ -92,15 +82,10 @@ func (t Table[T]) CellAt(x, y int) T {
 //   - new_width: The new width of the table.
 //
 // Returns:
-//   - error: If the table could not be resized.
-//
-// Errors:
-//   - gers.BadParameterError: If new_width is negative.
-func (t *Table[T]) ResizeWidth(new_width int) error {
+//   - error: An error of type common.ErrNilReceiver if the receiver is nil.
+func (t *Table[T]) ResizeWidth(new_width uint) error {
 	if t == nil {
 		return common.ErrNilReceiver
-	} else if new_width < 0 {
-		return common.NewErrBadParam("new_width", "must be non-negative")
 	}
 
 	if new_width == t.width {
@@ -108,13 +93,13 @@ func (t *Table[T]) ResizeWidth(new_width int) error {
 	}
 
 	if new_width < t.width {
-		for i := 0; i < t.height; i++ {
+		for i := uint(0); i < t.height; i++ {
 			t.table[i] = t.table[i][:new_width:new_width]
 		}
 	} else {
 		extension := make([]T, new_width-t.width)
 
-		for i := 0; i < t.height; i++ {
+		for i := uint(0); i < t.height; i++ {
 			t.table[i] = append(t.table[i], extension...)
 		}
 	}
@@ -130,15 +115,10 @@ func (t *Table[T]) ResizeWidth(new_width int) error {
 //   - new_height: The new height of the table.
 //
 // Returns:
-//   - error: If the table could not be resized.
-//
-// Errors:
-//   - gers.BadParameterError: If new_height is negative.
-func (t *Table[T]) ResizeHeight(new_height int) error {
+//   - error: An error of type common.ErrNilReceiver if the receiver is nil.
+func (t *Table[T]) ResizeHeight(new_height uint) error {
 	if t == nil {
 		return common.ErrNilReceiver
-	} else if new_height < 0 {
-		return common.NewErrBadParam("new_height", "must be non-negative")
 	}
 
 	if new_height == t.height {
@@ -163,8 +143,8 @@ func (t *Table[T]) ResizeHeight(new_height int) error {
 //   - cell: The cell to set.
 //   - x: The x position of the cell.
 //   - y: The y position of the cell.
-func (t *Table[T]) SetCellAt(cell T, x, y int) {
-	if t == nil || y < 0 || y >= t.height || x < 0 || x >= t.width {
+func (t *Table[T]) SetCellAt(cell T, x, y uint) {
+	if t == nil || y >= t.height || x >= t.width {
 		return
 	}
 
@@ -174,10 +154,10 @@ func (t *Table[T]) SetCellAt(cell T, x, y int) {
 // Row returns an iterator over the rows in the table.
 //
 // Returns:
-//   - iter.Seq2[int, []T]: An iterator over the rows in the table. Never returns nil.
-func (t Table[T]) Row() iter.Seq2[int, []T] {
-	return func(yield func(int, []T) bool) {
-		for i := 0; i < t.height; i++ {
+//   - iter.Seq2[uint, []T]: An iterator over the rows in the table. Never returns nil.
+func (t Table[T]) Row() iter.Seq2[uint, []T] {
+	return func(yield func(uint, []T) bool) {
+		for i := uint(0); i < t.height; i++ {
 			if !yield(i, t.table[i]) {
 				return
 			}
@@ -185,24 +165,27 @@ func (t Table[T]) Row() iter.Seq2[int, []T] {
 	}
 }
 
-// Cleanup cleans up the table. Does nothing if the receiver is nil or if
+// Free cleans up the table. Does nothing if the receiver is nil or if
 // is already cleaned up.
-func (t *Table[T]) Cleanup() {
+func (t *Table[T]) Free() {
 	if t == nil {
 		return
 	}
 
-	if len(t.table) > 0 {
-		for i := 0; i < t.height; i++ {
-			for j := 0; j < t.width; j++ {
-				t.table[i][j] = *new(T)
-			}
+	if len(t.table) == 0 {
+		t.height = 0
+		t.width = 0
 
-			t.table[i] = t.table[i][:0]
-		}
-
-		t.table = t.table[:0]
+		return
 	}
+
+	for i := uint(0); i < t.height; i++ {
+		clear(t.table[i])
+		t.table = nil
+	}
+
+	clear(t.table)
+	t.table = nil
 
 	t.width = 0
 	t.height = 0

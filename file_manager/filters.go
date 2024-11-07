@@ -14,7 +14,7 @@ func RejectNilDirEntry(entries *[]fs.DirEntry) {
 		return
 	}
 
-	var top int
+	var top uint
 
 	for _, entry := range *entries {
 		if entry == nil {
@@ -28,12 +28,10 @@ func RejectNilDirEntry(entries *[]fs.DirEntry) {
 	if top == 0 {
 		clear(*entries)
 		*entries = nil
-	} else if top == len(*entries) {
-		return
+	} else {
+		clear((*entries)[top:])
+		*entries = (*entries)[:top]
 	}
-
-	clear((*entries)[top:])
-	*entries = (*entries)[:top]
 }
 
 // RejectDir filters out nil elements and directory entries from a slice of fs.DirEntry
@@ -48,7 +46,7 @@ func RejectDir(entries *[]fs.DirEntry) {
 		return
 	}
 
-	var top int
+	var top uint
 
 	for _, entry := range *entries {
 		if entry == nil || entry.IsDir() {
@@ -62,10 +60,8 @@ func RejectDir(entries *[]fs.DirEntry) {
 	if top == 0 {
 		clear(*entries)
 		*entries = nil
-	} else if top == len(*entries) {
-		return
+	} else {
+		clear((*entries)[top:])
+		*entries = (*entries)[:top]
 	}
-
-	clear((*entries)[top:])
-	*entries = (*entries)[:top]
 }

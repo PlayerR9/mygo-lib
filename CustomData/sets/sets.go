@@ -12,8 +12,8 @@ type Set[T any] interface {
 	// Size returns the number of elements in the set.
 	//
 	// Returns:
-	//   - int: The number of elements in the set. Never negative.
-	Size() int
+	//   - uint: The number of elements in the set. Never negative.
+	Size() uint
 
 	// IsEmpty checks whether the set is empty.
 	//
@@ -32,16 +32,6 @@ type Set[T any] interface {
 	// Returns:
 	//   - error: Returns an error if the receiver is nil.
 	Add(elem T) error
-
-	// AddMany adds multiple elements to the set. It must be equal to calling Add
-	// multiple times but can be more efficient than adding each element individually.
-	//
-	// Parameters:
-	//   - elems: The elements to add to the set.
-	//
-	// Returns:
-	//   - error: Returns an error if the receiver is nil.
-	AddMany(elems []T) error
 
 	// Contains checks whether the specified element is present in the set.
 	//
@@ -84,7 +74,7 @@ func Merge[T any](from, other Set[T]) error {
 		return common.NewErrNilParam("from")
 	}
 
-	_ = from.AddMany(slice)
+	_ = Add(from, slice...)
 
 	return nil
 }
@@ -93,28 +83,29 @@ func Merge[T any](from, other Set[T]) error {
 type baseSet[T comparable] struct {
 	// elems is the underlying map of elems elements.
 	elems map[T]struct{}
+
+	lenElems uint
 }
 
 // Size implements the Set interface.
-func (s baseSet[T]) Size() int {
-	return len(s.elems)
+func (s baseSet[T]) Size() uint {
+	return s.lenElems
 }
 
 // IsEmpty implements the Set interface.
 func (s baseSet[T]) IsEmpty() bool {
-	return len(s.elems) == 0
+	return s.lenElems == 0
 }
 
 // Reset implements the Set interface.
 func (s *baseSet[T]) Reset() {
-	if s == nil {
+	if s == nil || s.lenElems == 0 {
 		return
 	}
 
-	if len(s.elems) > 0 {
-		clear(s.elems)
-		s.elems = nil
-	}
+	clear(s.elems)
+	s.elems = make(map[T]struct{})
+	s.lenElems = 0
 }
 
 // Add implements the Set interface.
@@ -123,11 +114,13 @@ func (s *baseSet[T]) Add(elem T) error {
 		return common.ErrNilReceiver
 	}
 
-	if s.elems == nil {
-		s.elems = make(map[T]struct{})
+	_, ok := s.elems[elem]
+	if ok {
+		return nil
 	}
 
 	s.elems[elem] = struct{}{}
+	s.lenElems++
 
 	return nil
 }
@@ -138,12 +131,14 @@ func (s *baseSet[T]) AddMany(elems []T) error {
 		return common.ErrNilReceiver
 	}
 
-	if s.elems == nil {
-		s.elems = make(map[T]struct{})
-	}
-
 	for _, k := range elems {
+		_, ok := s.elems[k]
+		if ok {
+			continue
+		}
+
 		s.elems[k] = struct{}{}
+		s.lenElems++
 	}
 
 	return nil
@@ -151,7 +146,7 @@ func (s *baseSet[T]) AddMany(elems []T) error {
 
 // Contains implements the Set interface.
 func (s baseSet[T]) Contains(elem T) bool {
-	if len(s.elems) == 0 {
+	if s.lenElems == 0 {
 		return false
 	}
 
@@ -178,17 +173,36 @@ func (s baseSet[T]) Elem() iter.Seq[T] {
 // Returns:
 //   - Set[T]: The new set. Never returns nil.
 func New[T comparable](elems ...T) Set[T] {
-	if len(elems) == 0 {
-		return &baseSet[T]{}
+	s := &baseSet[T]{
+		elems:    make(map[T]struct{}),
+		lenElems: 0,
 	}
 
-	s := &baseSet[T]{
-		elems: make(map[T]struct{}),
+	if len(elems) == 0 {
+		return s
 	}
 
 	for _, k := range elems {
+		_, ok := s.elems[k]
+		if ok {
+			continue
+		}
+
 		s.elems[k] = struct{}{}
+		s.lenElems++
 	}
 
 	return s
+}
+
+func Add[T any](set Set[T], elems ...T) error {
+	if set == nil {
+		return common.NewErrNilParam("set")
+	}
+
+	for _, elem := range elems {
+		_ = set.Add(elem)
+	}
+
+	return nil
 }

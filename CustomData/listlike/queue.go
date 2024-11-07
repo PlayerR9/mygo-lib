@@ -127,8 +127,8 @@ func (q *ArrayQueue[T]) EnqueueMany(elems []T) error {
 //
 // Returns:
 //   - int: The number of elements in the queue. Never negative.
-func (q ArrayQueue[T]) Size() int {
-	return len(q.slice)
+func (q ArrayQueue[T]) Size() uint {
+	return uint(len(q.slice))
 }
 
 // Reset resets the queue for reuse. Does nothing if the receiver is nil.
