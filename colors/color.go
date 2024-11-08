@@ -27,7 +27,7 @@ type Color struct {
 //   - blue: The blue component of the RGB color.
 //
 // Returns:
-//   - Color: The new RGB color. Never returns nil.
+//   - Color: The new RGB color.
 func New(red, green, blue uint8) Color {
 	return Color{
 		Red:   red,

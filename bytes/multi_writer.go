@@ -49,7 +49,8 @@ func New(w io.Writer) (*MultiWriter, error) {
 	}
 
 	return &MultiWriter{
-		w: w,
+		w:       w,
+		written: 0,
 	}, nil
 }
 

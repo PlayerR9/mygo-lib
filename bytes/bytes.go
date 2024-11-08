@@ -12,16 +12,14 @@ import (
 //   - data: A pointer to a byte slice where the encoded UTF-8 bytes will be appended.
 //   - chars: A slice of runes to encode.
 //
-// Returns:
-//   - error: An error if the provided data parameter is nil.
-func Encode(data *[]byte, chars []rune) error {
+// Panics:
+//   - common.ErrBadParam: If data is nil.
+func Encode(data *[]byte, chars []rune) {
 	if data == nil {
-		return common.NewErrNilParam("data")
+		panic(common.NewErrNilParam("data"))
 	}
 
 	for _, c := range chars {
 		*data = utf8.AppendRune(*data, c)
 	}
-
-	return nil
 }

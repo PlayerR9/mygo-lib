@@ -26,7 +26,7 @@ type Table[T any] struct {
 //   - height: The height of the table.
 //
 // Returns:
-//   - *Table: The new Table.
+//   - *Table: The new Table. Never returns nil.
 func NewTable[T any](width, height uint) *Table[T] {
 	table := make([][]T, 0, height)
 

@@ -114,7 +114,7 @@ func (bs BoxStyle) Corners() [4][]byte {
 // It also applies to the bottom border as they are the same.
 //
 // Returns:
-//   - string: The top border.
+//   - []byte: The top border. Never returns nil.
 func (bs BoxStyle) TopBorder() []byte {
 	var tb_border []byte
 
@@ -151,7 +151,7 @@ func (bs BoxStyle) TopBorder() []byte {
 // It also applies to the left border as they are the same.
 //
 // Returns:
-//   - string: The side border.
+//   - []byte: The side border. Never returns nil.
 func (bs BoxStyle) SideBorder() []byte {
 	var side_border []byte
 

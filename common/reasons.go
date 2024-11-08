@@ -181,9 +181,11 @@ func NewErrNotAsExpected(quote bool, kind string, got string, expecteds ...strin
 
 	for _, expected := range expecteds {
 		pos, ok := slices.BinarySearch(unique, expected)
-		if !ok {
-			unique = slices.Insert(unique, pos, expected)
+		if ok {
+			continue
 		}
+
+		unique = slices.Insert(unique, pos, expected)
 	}
 
 	unique = unique[:len(unique):len(unique)]

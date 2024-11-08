@@ -83,6 +83,8 @@ func link_nodes(parent *Node, children []*Node) []*Node {
 //
 // Returns:
 //   - error: Returns an error if the operation fails or if the receiver is nil, otherwise returns nil.
+//
+// As a side effect, the slice of children will be stripped of nil values.
 func (n *Node) PrependChildren(children ...*Node) error {
 	slices.RejectNils(&children)
 	if len(children) == 0 {
@@ -112,6 +114,8 @@ func (n *Node) PrependChildren(children ...*Node) error {
 //
 // Returns:
 //   - error: Returns an error if the operation fails or if the receiver is nil, otherwise returns nil.
+//
+// As a side effect, the slice of children will be stripped of nil values.
 func (n *Node) AppendChildren(children ...*Node) error {
 	slices.RejectNils(&children)
 	if len(children) == 0 {

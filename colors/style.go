@@ -23,13 +23,7 @@ type Style struct {
 	bg Color
 }
 
-// String returns a string that sets the terminal's foreground and
-// background colors to the RGB values of the Style's fg and bg fields.
-// This string can be printed to apply the color styling in the terminal.
-//
-// Returns:
-//   - string: A string that, when printed, sets both the foreground and
-//     background colors of the terminal.
+// String implements the fmt.Stringer interface.
 func (s Style) String() string {
 	var buff bytes.Buffer
 

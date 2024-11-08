@@ -1,6 +1,8 @@
 package common
 
-import "fmt"
+import (
+	"strconv"
+)
 
 // ErrMust occurs when something must be true.
 type ErrMust struct {
@@ -67,7 +69,7 @@ func (e ErrAt) Error() string {
 		reason = e.Inner.Error()
 	}
 
-	return fmt.Sprintf("at index %d: %s", e.Idx, reason)
+	return "at index " + strconv.FormatUint(uint64(e.Idx), 10) + ": " + reason
 }
 
 // NewErrAt returns a new ErrAt from the given index and inner error.

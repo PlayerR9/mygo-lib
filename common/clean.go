@@ -1,19 +1,26 @@
 package common
 
 // ClearFrom clears all elements in the slice starting from the given index. If
-// the given index is less than or equal to 0, the entire slice is cleared. If the
+// the given index is equal to 0, the entire slice is cleared. If the
 // given index is greater than or equal to the length of the slice, the function
 // does nothing.
 //
 // Parameters:
 //   - slice: The slice to clear elements from.
 //   - from_idx: The index to start clearing elements from.
-func ClearFrom[T any](slice *[]T, from_idx int) {
-	if slice == nil || from_idx >= len(*slice) {
+//
+// Panics:
+//   - ErrBadParam: If the slice is nil.
+func ClearFrom[T any](slice *[]T, from_idx uint) {
+	if slice == nil {
+		panic(NewErrNilParam("slice"))
+	}
+
+	if from_idx >= uint(len(*slice)) {
 		return
 	}
 
-	if from_idx <= 0 {
+	if from_idx == 0 {
 		clear(*slice)
 		*slice = nil
 
@@ -25,19 +32,23 @@ func ClearFrom[T any](slice *[]T, from_idx int) {
 }
 
 // ClearTo clears all elements in the slice up to (but not including) the given
-// index. If the given index is less than 0, the function does nothing. If the
+// index. If the given index is  0, the function does nothing. If the
 // given index is greater than or equal to the length of the slice, the entire
 // slice is cleared.
 //
 // Parameters:
 //   - slice: The slice to clear elements from.
 //   - to_idx: The index up to which to clear elements.
-func ClearTo[T any](slice *[]T, to_idx int) {
-	if slice == nil || to_idx < 0 {
+func ClearTo[T any](slice *[]T, to_idx uint) {
+	if slice == nil {
+		panic(NewErrNilParam("slice"))
+	}
+
+	if to_idx == 0 {
 		return
 	}
 
-	if to_idx >= len(*slice) {
+	if to_idx >= uint(len(*slice)) {
 		clear(*slice)
 		*slice = nil
 

@@ -7,8 +7,12 @@ import (
 )
 
 var (
+	// nonterminal_data, terminal_data, indent_pipe_data, indent_empty_data are
+	// the data used to print the tree.
 	nonterminal_data, terminal_data, indent_pipe_data, indent_empty_data []byte
-	nonterminal_size, terminal_size                                      int
+
+	// nonterminal_size and terminal_size are the sizes of the data used to print the tree.
+	nonterminal_size, terminal_size int
 )
 
 func init() {
