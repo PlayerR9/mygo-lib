@@ -4,9 +4,11 @@ import (
 	"slices"
 	"testing"
 
+	vc "github.com/PlayerR9/go-verify/common"
 	"github.com/PlayerR9/go-verify/test"
 )
 
+// TestIndicesOf tests the IndicesOf function.
 func TestIndicesOf(t *testing.T) {
 	type args struct {
 		slice    []string
@@ -20,7 +22,7 @@ func TestIndicesOf(t *testing.T) {
 
 			ok := slices.Equal(indices, args.expected)
 			if !ok {
-				t.Errorf("expected %v, got %v", args.expected, indices)
+				vc.FAIL.WrongAny(t, args.expected, indices)
 			}
 		}
 	})

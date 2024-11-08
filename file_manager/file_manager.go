@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	"github.com/PlayerR9/mygo-lib/common"
+	gslc "github.com/PlayerR9/mygo-lib/slices"
 )
 
 // Exists returns whether the file at path exists and an error if any.
@@ -64,14 +65,17 @@ func ExistsSpecific(loc string, want_dir bool) (bool, error) {
 //   - p: A predicate function that determines if a file path should be included in 'files'.
 //
 // Returns:
-//   - error: Returns an error if 'files' is nil or if there is an error reading a directory.
+//   - error: Returns an error if there is an error reading a directory.
+//
+// Panics:
+//   - common.ErrBadParam: If 'files' is nil.
 //
 // Deprecated: This is not used anywhere in the codebase.
 func ScanDir(loc string, files *[]string, p func(path string) bool) error {
 	if p == nil {
 		return nil
 	} else if files == nil {
-		return common.NewErrNilParam("files")
+		panic(common.NewErrNilParam("files"))
 	}
 
 	stack := []string{loc}
@@ -91,9 +95,9 @@ func ScanDir(loc string, files *[]string, p func(path string) bool) error {
 			path := filepath.Join(top, entry.Name())
 
 			if entry.IsDir() {
-				_ = MayInsert(&dirs, path)
+				_ = gslc.MayInsert(&dirs, path)
 			} else if p(path) {
-				_ = MayInsert(files, path)
+				_ = gslc.MayInsert(files, path)
 			}
 		}
 

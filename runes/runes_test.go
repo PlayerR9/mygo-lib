@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	vc "github.com/PlayerR9/go-verify/common"
 	"github.com/PlayerR9/go-verify/test"
 )
 
@@ -18,16 +19,20 @@ func TestBytesToUtf8(t *testing.T) {
 	tests := test.NewTests(func(args args) test.TestingFunc {
 		return func(t *testing.T) {
 			chars, err := BytesToUtf8(args.b)
-
-			err = test.CheckErr(args.expected_err, err)
-			if err != nil {
-				t.Error(err)
-			} else {
-				ok := slices.Equal(chars, args.expected_res)
-				if !ok {
-					t.Errorf("expected %v, got %v", args.expected_res, chars)
-				}
+			if args.expected_err == "" && err != nil {
+				vc.FAIL.WrongError(t, args.expected_err, err)
+				return
+			} else if args.expected_err != "" && err == nil {
+				vc.FAIL.WrongError(t, args.expected_err, err)
+				return
 			}
+
+			ok := slices.Equal(chars, args.expected_res)
+			if ok {
+				return
+			}
+
+			vc.FAIL.WrongAny(t, args.expected_res, chars)
 		}
 	})
 
@@ -64,15 +69,20 @@ func TestStringToUtf8(t *testing.T) {
 		return func(t *testing.T) {
 			chars, err := StringToUtf8(args.s)
 
-			err = test.CheckErr(args.expected_err, err)
-			if err != nil {
-				t.Error(err)
-			} else {
-				ok := slices.Equal(chars, args.expected_res)
-				if !ok {
-					t.Errorf("expected %v, got %v", args.expected_res, chars)
-				}
+			if args.expected_err == "" && err != nil {
+				vc.FAIL.WrongError(t, args.expected_err, err)
+				return
+			} else if args.expected_err != "" && err == nil {
+				vc.FAIL.WrongError(t, args.expected_err, err)
+				return
 			}
+
+			ok := slices.Equal(chars, args.expected_res)
+			if ok {
+				return
+			}
+
+			vc.FAIL.WrongAny(t, args.expected_res, chars)
 		}
 	})
 
@@ -102,7 +112,7 @@ func TestIndicesOf(t *testing.T) {
 	type args struct {
 		data     []rune
 		sep      rune
-		expected []int
+		expected []uint
 	}
 
 	tests := test.NewTests(func(args args) test.TestingFunc {
@@ -110,22 +120,24 @@ func TestIndicesOf(t *testing.T) {
 			indices := IndicesOf(args.data, args.sep)
 
 			ok := slices.Equal(indices, args.expected)
-			if !ok {
-				t.Errorf("expected %v, got %v", args.expected, indices)
+			if ok {
+				return
 			}
+
+			vc.FAIL.WrongAny(t, args.expected, indices)
 		}
 	})
 
 	_ = tests.AddTest("with empty data", args{
 		data:     []rune{},
 		sep:      'a',
-		expected: []int{},
+		expected: []uint{},
 	})
 
 	_ = tests.AddTest("with data and separator", args{
 		data:     []rune("test"),
 		sep:      't',
-		expected: []int{0, 3},
+		expected: []uint{0, 3},
 	})
 
 	_ = tests.AddTest("with data and no separator", args{
@@ -141,24 +153,29 @@ func TestIndicesOf(t *testing.T) {
 func TestNormalizeRunes(t *testing.T) {
 	type args struct {
 		data           []rune
-		tab_size       int
+		tab_size       uint
 		expected_err   string
 		expected_slice []rune
 	}
 
 	tests := test.NewTests(func(args args) test.TestingFunc {
 		return func(t *testing.T) {
-			normalized, err := NormalizeRunes(args.data, args.tab_size)
+			err := Normalize(&args.data, args.tab_size)
 
-			err = test.CheckErr(args.expected_err, err)
-			if err != nil {
-				t.Error(err)
-			} else {
-				ok := slices.Equal(normalized, args.expected_slice)
-				if !ok {
-					t.Errorf("expected %v, got %v", args.expected_slice, normalized)
-				}
+			if args.expected_err == "" && err != nil {
+				vc.FAIL.WrongError(t, args.expected_err, err)
+				return
+			} else if args.expected_err != "" && err == nil {
+				vc.FAIL.WrongError(t, args.expected_err, err)
+				return
 			}
+
+			ok := slices.Equal(args.data, args.expected_slice)
+			if ok {
+				return
+			}
+
+			vc.FAIL.WrongAny(t, args.expected_slice, args.data)
 		}
 	})
 
@@ -211,7 +228,7 @@ func TestNormalizeRunes(t *testing.T) {
 func TestRepeat(t *testing.T) {
 	type args struct {
 		char     rune
-		count    int
+		count    uint
 		expected []rune
 	}
 
@@ -220,16 +237,12 @@ func TestRepeat(t *testing.T) {
 			chars := Repeat(args.char, args.count)
 
 			ok := slices.Equal(chars, args.expected)
-			if !ok {
-				t.Errorf("expected %v, got %v", args.expected, chars)
+			if ok {
+				return
 			}
-		}
-	})
 
-	_ = tests.AddTest("with negative count", args{
-		char:     'a',
-		count:    -1,
-		expected: []rune{},
+			vc.FAIL.WrongAny(t, args.expected, chars)
+		}
 	})
 
 	_ = tests.AddTest("with zero count", args{

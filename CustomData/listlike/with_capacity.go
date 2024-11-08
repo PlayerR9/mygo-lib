@@ -55,7 +55,7 @@ func NewCapacityStack[T any](stack Stack[T], capacity uint) (Stack[T], error) {
 
 	return &CapacityStack[T]{
 		stack:    stack,
-		size: ,
+		size:     0,
 		capacity: capacity,
 	}, nil
 }

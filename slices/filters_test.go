@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	vc "github.com/PlayerR9/go-verify/common"
 	test "github.com/PlayerR9/go-verify/test"
 )
 
@@ -31,12 +32,14 @@ func TestApplyFilter(t *testing.T) {
 
 	tests := test.NewTests(func(args args) test.TestingFunc {
 		return func(t *testing.T) {
-			actual := ApplyFilter(args.elems, args.predicate)
+			_ = Filter(&args.elems, args.predicate)
 
-			ok := slices.Equal(actual, args.expected)
-			if !ok {
-				t.Errorf("expected %v, got %v", args.expected, actual)
+			ok := slices.Equal(args.elems, args.expected)
+			if ok {
+				return
 			}
+
+			vc.FAIL.WrongAny(t, args.expected, args.elems)
 		}
 	})
 
@@ -79,12 +82,14 @@ func TestApplyReject(t *testing.T) {
 
 	tests := test.NewTests(func(args args) test.TestingFunc {
 		return func(t *testing.T) {
-			actual := ApplyReject(args.elems, args.predicate)
+			_ = Reject(&args.elems, args.predicate)
 
-			ok := slices.Equal(actual, args.expected)
-			if !ok {
-				t.Errorf("expected %v, got %v", args.expected, actual)
+			ok := slices.Equal(args.elems, args.expected)
+			if ok {
+				return
 			}
+
+			vc.FAIL.WrongAny(t, args.expected, args.elems)
 		}
 	})
 
@@ -103,15 +108,11 @@ func TestApplyReject(t *testing.T) {
 	_ = tests.Run(t)
 }
 
-type MockStruct struct {
-}
-
-func (ms *MockStruct) IsNil() bool {
-	return ms == nil
-}
-
 // TestRejectNils tests the RejectNils function.
 func TestRejectNils(t *testing.T) {
+	type MockStruct struct {
+	}
+
 	type args struct {
 		tokens   []*MockStruct
 		expected []*MockStruct
@@ -119,17 +120,14 @@ func TestRejectNils(t *testing.T) {
 
 	tests := test.NewTests(func(args args) test.TestingFunc {
 		return func(t *testing.T) {
-			result := RejectNils(args.tokens)
+			_ = RejectNils(&args.tokens)
 
-			if len(result) != len(args.expected) {
-				t.Errorf("want %d elements, got %d", len(args.expected), len(result))
-			} else {
-				for i := 0; i < len(result); i++ {
-					if result[i] == nil {
-						t.Errorf("at index %d, want %p, got nil", i, args.expected[i])
-					}
-				}
+			ok := slices.Equal(args.tokens, args.expected)
+			if ok {
+				return
 			}
+
+			vc.FAIL.WrongAny(t, args.expected, args.tokens)
 		}
 	})
 
@@ -151,6 +149,49 @@ func TestRejectNils(t *testing.T) {
 	_ = tests.AddTest("all nil", args{
 		tokens:   []*MockStruct{nil, nil},
 		expected: nil,
+	})
+
+	_ = tests.Run(t)
+}
+
+// TestSplit tests the Split function.
+func TestSplit(t *testing.T) {
+	type args struct {
+		elems     []int
+		predicate Predicate[int]
+		expected  uint
+		success   []int
+		fail      []int
+	}
+
+	tests := test.NewTests(func(args args) test.TestingFunc {
+		return func(t *testing.T) {
+			bound := Split(args.elems, args.predicate)
+			if bound != args.expected {
+				vc.FAIL.WrongInt(t, int(args.expected), int(bound))
+				return
+			}
+
+			ok := slices.Equal(args.elems[:bound], args.success)
+			if !ok {
+				vc.FAIL.WrongAny(t, args.success, args.elems[:bound])
+				return
+			}
+
+			ok = slices.Equal(args.elems[bound:], args.fail)
+			if !ok {
+				vc.FAIL.WrongAny(t, args.fail, args.elems[bound:])
+				return
+			}
+		}
+	})
+
+	_ = tests.AddTest("success", args{
+		elems:     []int{1, 2, 3, 4, 5},
+		predicate: func(x int) bool { return x%2 == 0 },
+		expected:  2,
+		success:   []int{2, 4},
+		fail:      []int{1, 3, 5},
 	})
 
 	_ = tests.Run(t)

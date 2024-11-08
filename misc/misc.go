@@ -1,15 +1,19 @@
 package misc
 
-import "slices"
+import (
+	"slices"
 
-// Embeds calls the Embeds method on the given element and returns the result.
+	"github.com/PlayerR9/mygo-lib/common"
+)
+
+// Embeds calls the `Embeds()` method on the given element and returns the result.
 //
 // Parameters:
-//   - elem: The element to call the Embeds method on.
+//   - elem: The element to call the `Embeds()` method on.
 //
 // Returns:
-//   - T: The result of the Embeds method.
-//   - bool: True if the element has an Embeds method and false otherwise.
+//   - T: The result of the `Embeds()` method.
+//   - bool: True if the element has an `Embeds()` method and false otherwise.
 func Embeds[T any](elem any) (T, bool) {
 	if elem == nil {
 		return *new(T), false
@@ -25,8 +29,8 @@ func Embeds[T any](elem any) (T, bool) {
 
 // Innermost retrieves the innermost embedded element of the given type from the provided element.
 //
-// The function continuously calls the Embeds method to access nested elements until it encounters
-// an element that either does not have an Embeds method or is equivalent to the zero value of the
+// The function continuously calls the `Embeds()` method to access nested elements until it encounters
+// an element that either does not have an `Embeds()` method or is equivalent to the zero value of the
 // specified type.
 //
 // Parameters:
@@ -97,16 +101,19 @@ func TowerOfEmbeds[T comparable](elem any) ([]T, bool) {
 	return tower, true
 }
 
-// WithContext calls the WithContext method on the given element and returns the result.
+// WithContext calls the `WithContext()` method on the given element and returns the result.
 //
 // Parameters:
-//   - elem: The element to call the WithContext method on.
+//   - elem: The element to call the `WithContext()` method on.
 //   - key: The key to add to the context.
 //   - value: The value to add to the context.
 //
 // Returns:
-//   - T: The result of the WithContext method. The type of this value must be T.
-//   - bool: True if the element has a WithContext method and false otherwise.
+//   - T: The result of the `WithContext()` method. The type of this value must be T.
+//   - bool: True if the element has a `WithContext()` method and false otherwise.
+//
+// Panics:
+//   - If the element does not have an `Embeds()` method.
 func WithContext[T comparable](elem any, key string, value any) (T, bool) {
 	if elem == nil {
 		return *new(T), false
@@ -115,20 +122,22 @@ func WithContext[T comparable](elem any, key string, value any) (T, bool) {
 	e := elem
 
 	for {
-		if f, ok := e.(interface{ WithContext(string, any) T }); ok {
-			e := f.WithContext(key, value)
+		f1, ok := e.(interface{ WithContext(key string, value any) T })
+		if ok {
+			e := f1.WithContext(key, value)
 			return e, true
 		}
 
-		if f, ok := e.(interface{ Embeds() T }); ok {
-			e = f.Embeds()
-		} else {
+		f2, ok := e.(interface{ Embeds() T })
+		if !ok {
 			e, ok := elem.(T)
 			if !ok {
-				panic("elem is not convertible to T")
+				panic(common.NewErrInvalidType(elem, *new(T)))
 			}
 
 			return e, false
 		}
+
+		e = f2.Embeds()
 	}
 }

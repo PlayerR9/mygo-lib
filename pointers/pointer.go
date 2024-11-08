@@ -1,5 +1,7 @@
 package pointers
 
+import "github.com/PlayerR9/mygo-lib/common"
+
 // Pointer is an interface for pointer-like types.
 type Pointer interface {
 	// IsNil checks whether the pointer is nil.
@@ -9,18 +11,25 @@ type Pointer interface {
 	IsNil() bool
 }
 
-// RejectNils removes all nil elements from the given slice of pointer-like
+// RejectNils removes in-place all nil elements from the given slice of pointer-like
 // types that implement the Pointer interface.
 //
 // Parameters:
 //   - slice: The slice of pointer-like types to remove nils from.
 //
 // Returns:
-//   - []T: The slice of pointer-like types without nils. Nil if all the
-//     elements are nil or no elements were specified.
-func RejectNils[T Pointer](slice *[]T) {
-	if slice == nil || len(*slice) == 0 {
-		return
+//   - uint: The number of elements removed from the slice.
+//
+// Panics:
+//   - common.ErrBadParam: If the slice is nil.
+func RejectNils[T Pointer](slice *[]T) uint {
+	if slice == nil {
+		panic(common.NewErrNilParam("slice"))
+	}
+
+	lenSlice := uint(len(*slice))
+	if lenSlice == 0 {
+		return 0
 	}
 
 	var top uint
@@ -38,8 +47,12 @@ func RejectNils[T Pointer](slice *[]T) {
 	if top == 0 {
 		clear(*slice)
 		*slice = nil
-	} else {
-		clear((*slice)[top:])
-		*slice = (*slice)[:top:top]
+
+		return lenSlice
 	}
+
+	clear((*slice)[top:])
+	*slice = (*slice)[:top:top]
+
+	return lenSlice - top
 }

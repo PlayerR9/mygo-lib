@@ -22,3 +22,19 @@ func Quote(elems []string) {
 		elems[i] = strconv.Quote(elems[i])
 	}
 }
+
+// OrQuoteElse returns the quoted string if the string is not empty. Otherwise, it returns the default string.
+//
+// Parameters:
+//   - str: The string to quote if it is not empty.
+//   - def: The default string to return if str is empty.
+//
+// Returns:
+//   - string: The quoted string or the default string.
+func OrQuoteElse(str string, def string) string {
+	if str == "" {
+		return def
+	} else {
+		return strconv.Quote(str)
+	}
+}

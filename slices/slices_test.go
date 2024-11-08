@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	vc "github.com/PlayerR9/go-verify/common"
 	test "github.com/PlayerR9/go-verify/test"
 )
 
@@ -18,23 +19,19 @@ func TestMayInsert(t *testing.T) {
 
 	tests := test.NewTests(func(args args) test.TestingFunc {
 		return func(t *testing.T) {
-			ok, err := MayInsert(&args.Slice, args.Elem)
-			if err != nil {
-				t.Errorf("want no error, got %v", err)
-
-				return
-			}
+			ok := MayInsert(&args.Slice, args.Elem)
 
 			if ok != args.WantInserted {
-				t.Errorf("want %t, got %t", args.WantInserted, ok)
-
+				vc.FAIL.WrongBool(t, args.WantInserted, ok)
 				return
 			}
 
 			ok = slices.Equal(args.Slice, args.ExpectedSlice)
-			if !ok {
-				t.Errorf("want %v, got %v", args.ExpectedSlice, args.Slice)
+			if ok {
+				return
 			}
+
+			vc.FAIL.WrongAny(t, args.ExpectedSlice, args.Slice)
 		}
 	})
 
@@ -67,15 +64,16 @@ func TestUniquefy(t *testing.T) {
 		return func(t *testing.T) {
 			n := Uniquefy(&args.Slice)
 			if n != args.WantRemoved {
-				t.Errorf("want %d, got %d", args.WantRemoved, n)
-
+				vc.FAIL.WrongInt(t, int(args.WantRemoved), int(n))
 				return
 			}
 
 			ok := slices.Equal(args.Slice, args.ExpectedSlice)
-			if !ok {
-				t.Errorf("want %v, got %v", args.ExpectedSlice, args.Slice)
+			if ok {
+				return
 			}
+
+			vc.FAIL.WrongAny(t, args.ExpectedSlice, args.Slice)
 		}
 	})
 
@@ -105,23 +103,18 @@ func TestMerge(t *testing.T) {
 
 	tests := test.NewTests(func(args args) test.TestingFunc {
 		return func(t *testing.T) {
-			n, err := Merge(&args.Slice, args.From)
-			if err != nil {
-				t.Errorf("want no error, got %v", err)
-
-				return
-			}
-
+			n := Merge(&args.Slice, args.From)
 			if n != args.WantIgnored {
-				t.Errorf("want %d, got %d", args.WantIgnored, n)
-
+				vc.FAIL.WrongInt(t, int(args.WantIgnored), int(n))
 				return
 			}
 
 			ok := slices.Equal(args.Slice, args.ExpectedSlice)
-			if !ok {
-				t.Errorf("want %v, got %v", args.ExpectedSlice, args.Slice)
+			if ok {
+				return
 			}
+
+			vc.FAIL.WrongAny(t, args.ExpectedSlice, args.Slice)
 		}
 	})
 

@@ -15,22 +15,24 @@ import (
 //
 // Returns:
 //   - bool: Returns true if the element was inserted into the slice, false otherwise.
-//   - error: Returns ErrBadParam if slice is nil.
 //
 // If the element is not found in the slice, it is inserted in the correct position to maintain order.
-func MayInsert[T cmp.Ordered](slice *[]T, elem T) (bool, error) {
+//
+// Panics:
+//   - common.ErrBadParam: If slice is nil.
+func MayInsert[T cmp.Ordered](slice *[]T, elem T) bool {
 	if slice == nil {
-		return false, common.NewErrNilParam("slice")
+		panic(common.NewErrNilParam("slice"))
 	}
 
 	pos, ok := slices.BinarySearch(*slice, elem)
 	if ok {
-		return false, nil
+		return false
 	}
 
 	*slice = slices.Insert(*slice, pos, elem)
 
-	return true, nil
+	return true
 }
 
 // Uniquefy removes duplicate elements from a slice, in-place, while also sorting the slice in
@@ -43,29 +45,42 @@ func MayInsert[T cmp.Ordered](slice *[]T, elem T) (bool, error) {
 //   - uint: The number of elements removed from the slice.
 //
 // The slice is also resized while clearing the removed elements.
+//
+// Panics:
+//   - common.ErrBadParam: If slice is nil.
 func Uniquefy[T cmp.Ordered](slice *[]T) uint {
 	if slice == nil {
+		panic(common.NewErrNilParam("slice"))
+	}
+
+	lenSlice := uint(len(*slice))
+	if lenSlice < 2 {
 		return 0
 	}
 
-	unique := make([]T, 0, len(*slice))
+	limit := uint(1)
 
-	for _, elem := range *slice {
-		pos, ok := slices.BinarySearch(unique, elem)
+	for i := uint(1); i < lenSlice; i++ {
+		elem := (*slice)[i]
+
+		pos, ok := slices.BinarySearch((*slice)[:limit], elem)
 		if ok {
 			continue
 		}
 
-		unique = slices.Insert(unique, pos, elem)
+		for j := limit; j >= uint(pos); j-- {
+			(*slice)[j] = (*slice)[j-1]
+		}
+
+		(*slice)[pos] = elem
+		limit++
 	}
 
-	clear((*slice)[len(unique):])
+	clear((*slice)[limit:])
 
-	n := uint(cap(unique) - len(unique))
+	n := lenSlice - limit
 
-	unique = unique[:len(unique):len(unique)]
-
-	*slice = unique
+	*slice = (*slice)[:limit]
 
 	return n
 }
@@ -74,20 +89,22 @@ func Uniquefy[T cmp.Ordered](slice *[]T) uint {
 //
 // Parameters:
 //   - dest: A pointer to the destination slice where elements will be inserted. This slice must be sorted
-//     and free of duplicates. If not, Uniquefy must be called on it first.
+//     and free of duplicates. If not, `Uniquefy()` must be called on it first.
 //   - from: The slice of elements to merge into the destination.
 //
 // Returns:
 //   - uint: The number of elements that were not inserted or could not be merged.
-//   - error: Returns ErrBadParam if dest is nil.
 //
 // If 'from' is empty, the function does nothing. Each element from 'from' is inserted into 'dest' in the correct position,
 // ensuring that 'dest' remains sorted and free of duplicates.
-func Merge[T cmp.Ordered](dest *[]T, from []T) (uint, error) {
+//
+// Panics:
+//   - common.ErrBadParam: If dest is nil.
+func Merge[T cmp.Ordered](dest *[]T, from []T) uint {
 	if len(from) == 0 {
-		return 0, nil
+		return 0
 	} else if dest == nil {
-		return uint(len(from)), common.NewErrNilParam("dest")
+		panic(common.NewErrNilParam("dest"))
 	}
 
 	var n uint
@@ -101,5 +118,5 @@ func Merge[T cmp.Ordered](dest *[]T, from []T) (uint, error) {
 		}
 	}
 
-	return n, nil
+	return n
 }
