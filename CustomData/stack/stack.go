@@ -21,36 +21,46 @@ type Stack[T any] interface {
 	// Pop removes the top element from the stack.
 	//
 	// Returns:
-	//   - T: The element that was removed. Nil if no element was removed.
+	//   - T: The element that was removed.
 	//   - error: An error if the element could not be removed from the stack.
 	//
 	// Errors:
 	//   - ErrEmptyStack: If the stack is empty.
 	//   - common.ErrNilReceiver: If the receiver is nil.
+	//   - any other error that may be returned.
 	Pop() (T, error)
 
 	// Peek returns the element at the top of the stack without removing it.
 	//
 	// Returns:
-	//   - T: The element at the top of the stack. Nil if the stack is empty.
-	//   - error: An error of type ErrEmptyStack if the stack is empty.
+	//   - T: The element at the top of the stack.
+	//   - error: An error if the element could not be peeked from the stack.
+	//
+	// Errors:
+	//   - common.ErrNilReceiver: If the receiver is nil.
+	//   - common.ErrEmptyStack: If the stack is empty.
+	//   - any other error that may be returned.
 	Peek() (T, error)
 
 	// Size returns the number of elements in the stack.
 	//
 	// Returns:
 	//   - uint: The number of elements in the stack.
+	//
+	// If the receiver is nil, then 0 is returned.
 	Size() uint
 
 	// IsEmpty checks whether the stack is empty.
 	//
 	// Returns:
 	//   - bool: True if the stack is empty, false otherwise.
+	//
+	// If the receiver is nil, then true is returned.
 	IsEmpty() bool
 }
 
-// Push adds multiple elements to the stack in reverse order. Otherwise, elements are
-// added individually starting from the last element.
+// Push adds multiple elements to the stack in reverse order. If the stack implements
+// the `PushMany` method, then that method is used instead.
 //
 // Parameters:
 //   - stack: The stack to which the elements are added.
@@ -72,14 +82,55 @@ func Push[T any](stack Stack[T], elems ...T) (uint, error) {
 		return 0, common.NewErrNilParam("stack")
 	}
 
-	for i := lenElems; i >= 0; i-- {
-		elem := elems[i]
-
-		err := stack.Push(elem)
-		if err != nil {
-			return lenElems - i, err
-		}
+	s, ok := stack.(interface{ PushMany(elems []T) (uint, error) })
+	if ok {
+		n, err := s.PushMany(elems)
+		return n, err
 	}
 
-	return lenElems, nil
+	var i uint
+	var err error
+
+	for i = lenElems - 1; i >= 0 && err == nil; i-- {
+		err = stack.Push(elems[i])
+	}
+
+	return lenElems - i, err
+}
+
+// Free frees the stack. If the stack implements `Type` interface, then its `Free()`
+// method is called. If not, then the stack is cleared by popping all elements from the stack.
+//
+// Parameters:
+//   - stack: The stack to free.
+func Free[T any](stack Stack[T]) {
+	ok := common.Free(stack)
+	if ok {
+		return
+	}
+
+	var err error
+
+	for err == nil {
+		_, err = stack.Pop()
+	}
+}
+
+// Reset resets the stack for reuse. If the stack implements `Resetter` interface,
+// then its `Reset()` method is called. If not, then the stack is cleared by popping all
+// elements from the stack.
+//
+// Parameters:
+//   - stack: The stack to reset.
+func Reset[T any](stack Stack[T]) {
+	ok := common.Reset(stack)
+	if ok {
+		return
+	}
+
+	var err error
+
+	for err == nil {
+		_, err = stack.Pop()
+	}
 }

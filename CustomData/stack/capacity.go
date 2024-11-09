@@ -1,10 +1,12 @@
 package stack
 
 import (
+	"sync"
+
 	"github.com/PlayerR9/mygo-lib/common"
 )
 
-// Capacity is a stack that has a capacity.
+// Capacity is a wrapper for a Stack that allows for a specified capacity.
 type Capacity[T any] struct {
 	// stack is the underlying stack.
 	stack Stack[T]
@@ -14,14 +16,28 @@ type Capacity[T any] struct {
 
 	// capacity is the maximum number of elements in the stack.
 	capacity uint
+
+	// mu is the mutex for the stack.
+	mu sync.RWMutex
 }
 
 // Push implements Stack.
+//
+// Errors:
+//   - common.ErrInvalidObject: If the method `Free()` is called.
 func (c *Capacity[T]) Push(elem T) error {
 	if c == nil {
 		return common.ErrNilReceiver
-	} else if c.size == c.capacity {
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.size == c.capacity {
 		return ErrFullStack
+	} else if c.stack == nil {
+		// Method `Free()` was called.
+		return common.NewErrInvalidObject("Push")
 	}
 
 	err := c.stack.Push(elem)
@@ -35,71 +51,133 @@ func (c *Capacity[T]) Push(elem T) error {
 }
 
 // Pop implements Stack.
+//
+// Errors:
+//   - common.ErrInvalidObject: If the method `Free()` is called.
 func (c *Capacity[T]) Pop() (T, error) {
 	if c == nil {
 		return *new(T), common.ErrNilReceiver
-	} else if c.size == 0 {
-		return *new(T), ErrEmptyStack
 	}
 
-	top, _ := c.stack.Pop()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.size == 0 {
+		return *new(T), ErrEmptyStack
+	} else if c.stack == nil {
+		// Method `Free()` was called.
+		return *new(T), common.NewErrInvalidObject("Pop")
+	}
+
+	top, err := c.stack.Pop()
+	if err != nil {
+		return *new(T), err
+	}
+
 	c.size--
 
 	return top, nil
 }
 
 // Peek implements Stack.
-func (c Capacity[T]) Peek() (T, error) {
-	if c.size == 0 {
-		return *new(T), ErrEmptyStack
+//
+// Errors:
+//   - common.ErrInvalidObject: If the method `Free()` is called.
+func (c *Capacity[T]) Peek() (T, error) {
+	if c == nil {
+		return *new(T), common.ErrNilReceiver
 	}
 
-	top, _ := c.stack.Peek()
-	return top, nil
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if c.size == 0 {
+		return *new(T), ErrEmptyStack
+	} else if c.stack == nil {
+		// Method `Free()` was called.
+		return *new(T), common.NewErrInvalidObject("Peek")
+	}
+
+	top, err := c.stack.Peek()
+	return top, err
 }
 
 // IsEmpty implements Stack.
-func (c Capacity[T]) IsEmpty() bool {
+func (c *Capacity[T]) IsEmpty() bool {
+	if c == nil {
+		return true
+	}
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	return c.size == 0
 }
 
 // Size implements Stack.
-func (c Capacity[T]) Size() uint {
+func (c *Capacity[T]) Size() uint {
+	if c == nil {
+		return 0
+	}
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	return c.size
 }
 
 // Free implements common.Type.
-func (s *Capacity[T]) Free() {
-	if s == nil {
+func (c *Capacity[T]) Free() {
+	if c == nil {
 		return
 	}
 
-	s.capacity = 0
-	s.size = 0
-	common.Free(s.stack)
-	s.stack = nil
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.capacity = 0
+	c.size = 0
+
+	Free(c.stack)
+
+	c.stack = nil
+}
+
+// Reset implements common.Resetter.
+func (c *Capacity[T]) Reset() {
+	if c == nil {
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	Reset(c.stack)
+
+	c.size = 0
 }
 
 // WithCapacity creates a new stack with a specified capacity.
 //
 // Parameters:
-//   - stack: The underlying stack to wrap with a capacity. If none is provided, a new
-//     ArrayStack will be used.
+//   - stack: The underlying stack to wrap with a capacity.
 //   - capacity: The maximum number of elements the stack can hold.
 //
 // Returns:
-//   - Stack[T]: A new stack with the specified capacity.
-//   - error: An error if the existing stack has more elements than the specified capacity.
+//   - *Capacity[T]: A new stack with the specified capacity.
+//   - error: An error if the stack could not be created.
+//
+// Errors:
+//   - common.ErrBadParam: If the stack parameter is nil.
+//   - ErrFullStack: If the existing stack has more elements than the specified capacity.
 func WithCapacity[T any](stack Stack[T], capacity uint) (*Capacity[T], error) {
-	var size uint
-
 	if stack == nil {
-		stack = NewArrayStack[T]()
-	} else {
-		size = stack.Size()
-		if size > capacity {
-			return nil, ErrFullStack
-		}
+		return nil, common.NewErrNilParam("stack")
+	}
+
+	size := stack.Size()
+	if size > capacity {
+		return nil, ErrFullStack
 	}
 
 	return &Capacity[T]{
@@ -107,28 +185,4 @@ func WithCapacity[T any](stack Stack[T], capacity uint) (*Capacity[T], error) {
 		size:     size,
 		capacity: capacity,
 	}, nil
-}
-
-// Reset resets the stack for reuse. Does nothing if the receiver is nil.
-func (s *Capacity[T]) Reset() {
-	if s == nil {
-		return
-	}
-
-	stack, ok := s.stack.(interface{ Reset() })
-	if ok {
-		stack.Reset()
-		s.size = 0
-
-		return
-	}
-
-	for {
-		_, err := s.Pop()
-		if err != nil {
-			break
-		}
-	}
-
-	s.size = 0
 }
