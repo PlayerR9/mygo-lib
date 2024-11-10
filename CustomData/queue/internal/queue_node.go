@@ -6,20 +6,20 @@ import (
 	"github.com/PlayerR9/mygo-lib/common"
 )
 
-// StackNode is a node in the stack.
-type StackNode[T any] struct {
+// QueueNode is a node in the queue.
+type QueueNode[T any] struct {
 	// elem is the element.
 	elem T
 
-	// prev is the previous node.
-	prev *StackNode[T]
+	// next is the next node.
+	next *QueueNode[T]
 
 	// mu is the mutex.
 	mu sync.RWMutex
 }
 
 // Free implements common.Type.
-func (node *StackNode[T]) Free() {
+func (node *QueueNode[T]) Free() {
 	if node == nil {
 		return
 	}
@@ -27,36 +27,36 @@ func (node *StackNode[T]) Free() {
 	node.mu.Lock()
 	defer node.mu.Unlock()
 
-	if node.prev != nil {
-		node.prev.Free()
-		node.prev = nil
-	}
-
 	node.elem = *new(T)
+
+	if node.next != nil {
+		node.next.Free()
+		node.next = nil
+	}
 }
 
-// NewStackNode creates a new stack node with the given element.
+// NewQueueNode creates a new queue node with the given element.
 //
 // Parameters:
 //   - elem: The element of the node.
 //
 // Returns:
-//   - *StackNode[T]: The new node. Never returns nil.
-func NewStackNode[T any](elem T) *StackNode[T] {
-	return &StackNode[T]{
+//   - *QueueNode[T]: The new node. Never returns nil.
+func NewQueueNode[T any](elem T) *QueueNode[T] {
+	return &QueueNode[T]{
 		elem: elem,
-		prev: nil,
+		next: nil,
 	}
 }
 
-// SetPrev sets the previous node of the stack node.
+// SetNext sets the next node of the queue node.
 //
 // Parameters:
-//   - prev: The node to set as the previous node.
+//   - next: The node to set as the next node.
 //
 // Returns:
 //   - error: An error of type common.ErrNilReceiver if the receiver is nil.
-func (n *StackNode[T]) SetPrev(prev *StackNode[T]) error {
+func (n *QueueNode[T]) SetNext(next *QueueNode[T]) error {
 	if n == nil {
 		return common.ErrNilReceiver
 	}
@@ -64,19 +64,19 @@ func (n *StackNode[T]) SetPrev(prev *StackNode[T]) error {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
-	n.prev = prev
+	n.next = next
 
 	return nil
 }
 
-// MustGetPrev returns the previous node of the stack node.
+// MustGetNext returns the next node of the queue node.
 //
 // Returns:
-//   - *StackNode[T]: The previous node.
+//   - *QueueNode[T]: The next node.
 //
 // Panics:
 //   - common.ErrNilReceiver: If the receiver is nil.
-func (n *StackNode[T]) MustGetPrev() *StackNode[T] {
+func (n *QueueNode[T]) MustGetNext() *QueueNode[T] {
 	if n == nil {
 		panic(common.ErrNilReceiver)
 	}
@@ -84,17 +84,17 @@ func (n *StackNode[T]) MustGetPrev() *StackNode[T] {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
 
-	return n.prev
+	return n.next
 }
 
-// MustGetElem returns the element of the stack node.
+// MustGetElem returns the element of the queue node.
 //
 // Returns:
 //   - T: The element.
 //
 // Panics:
 //   - common.ErrNilReceiver: If the receiver is nil.
-func (n *StackNode[T]) MustGetElem() T {
+func (n *QueueNode[T]) MustGetElem() T {
 	if n == nil {
 		panic(common.ErrNilReceiver)
 	}

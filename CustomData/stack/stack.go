@@ -88,14 +88,14 @@ func Push[T any](stack Stack[T], elems ...T) (uint, error) {
 		return n, err
 	}
 
-	var i uint
-	var err error
-
-	for i = lenElems - 1; i >= 0 && err == nil; i-- {
-		err = stack.Push(elems[i])
+	for i := lenElems - 1; i >= 0; i-- {
+		err := stack.Push(elems[i])
+		if err != nil {
+			return lenElems - i, err
+		}
 	}
 
-	return lenElems - i, err
+	return lenElems, nil
 }
 
 // Free frees the stack. If the stack implements `Type` interface, then its `Free()`
@@ -104,15 +104,20 @@ func Push[T any](stack Stack[T], elems ...T) (uint, error) {
 // Parameters:
 //   - stack: The stack to free.
 func Free[T any](stack Stack[T]) {
-	ok := common.Free(stack)
-	if ok {
+	if stack == nil {
 		return
 	}
 
-	var err error
+	if s, ok := stack.(common.Freeable); ok {
+		s.Free()
+		return
+	}
 
-	for err == nil {
-		_, err = stack.Pop()
+	for {
+		_, err := stack.Pop()
+		if err != nil {
+			break
+		}
 	}
 }
 
@@ -123,14 +128,14 @@ func Free[T any](stack Stack[T]) {
 // Parameters:
 //   - stack: The stack to reset.
 func Reset[T any](stack Stack[T]) {
-	ok := common.Reset(stack)
-	if ok {
+	if stack == nil || common.Reset(stack) {
 		return
 	}
 
-	var err error
-
-	for err == nil {
-		_, err = stack.Pop()
+	for {
+		_, err := stack.Pop()
+		if err != nil {
+			break
+		}
 	}
 }

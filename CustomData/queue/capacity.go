@@ -69,14 +69,14 @@ func (c *Capacity[T]) Dequeue() (T, error) {
 		return *new(T), common.NewErrInvalidObject("Dequeue")
 	}
 
-	top, err := c.queue.Dequeue()
+	front, err := c.queue.Dequeue()
 	if err != nil {
 		return *new(T), err
 	}
 
 	c.size--
 
-	return top, nil
+	return front, nil
 }
 
 // Front implements Queue.
@@ -88,8 +88,8 @@ func (c *Capacity[T]) Front() (T, error) {
 		return *new(T), common.ErrNilReceiver
 	}
 
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	if c.size == 0 {
 		return *new(T), ErrEmptyQueue
@@ -98,8 +98,8 @@ func (c *Capacity[T]) Front() (T, error) {
 		return *new(T), common.NewErrInvalidObject("Front")
 	}
 
-	top, err := c.queue.Front()
-	return top, err
+	front, err := c.queue.Front()
+	return front, err
 }
 
 // IsEmpty implements Queue.
@@ -137,8 +137,24 @@ func (c *Capacity[T]) Free() {
 
 	c.capacity = 0
 	c.size = 0
-	common.Free(c.queue)
+
+	Free(c.queue)
+
 	c.queue = nil
+}
+
+// Reset implements common.Resetter.
+func (c *Capacity[T]) Reset() {
+	if c == nil {
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	Reset(c.queue)
+
+	c.size = 0
 }
 
 // WithCapacity creates a new queue with a specified capacity.
@@ -169,22 +185,4 @@ func WithCapacity[T any](queue Queue[T], capacity uint) (*Capacity[T], error) {
 		size:     size,
 		capacity: capacity,
 	}, nil
-}
-
-// Reset resets the queue for reuse. Does nothing if the receiver is nil.
-//
-// Panics:
-//   - any error that may be returned by the underlying queue during consecutive `Dequeue()`
-//     calls if it does not have a `Reset()` method.
-func (c *Capacity[T]) Reset() {
-	if c == nil {
-		return
-	}
-
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	Reset(c.queue)
-
-	c.size = 0
 }

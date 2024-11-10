@@ -10,8 +10,7 @@ import (
 // LinkedStack is a simple implementation of a stack that is backed by an linked list.
 // This implementation is thread-safe.
 //
-// An empty linked stack can be created using the `stack := new(stack.LinkedStack[T])` constructor
-// or the provided `NewLinkedStack` function.
+// An empty linked stack can be created using the `stack := new(stack.LinkedStack[T])` constructor.
 type LinkedStack[T any] struct {
 	// front is the front of the stack.
 	front *internal.StackNode[T]
@@ -28,10 +27,10 @@ func (s *LinkedStack[T]) Push(elem T) error {
 		return common.ErrNilReceiver
 	}
 
-	node := internal.NewStackNode(elem)
-
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	node := internal.NewStackNode(elem)
 
 	if s.front == nil {
 		s.front = node
@@ -123,9 +122,10 @@ func (s *LinkedStack[T]) Free() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	common.Free(s.front)
-
-	s.front = nil
+	if s.front != nil {
+		s.front.Free()
+		s.front = nil
+	}
 }
 
 // Reset implements common.Resetter.
@@ -137,29 +137,39 @@ func (s *LinkedStack[T]) Reset() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	common.Free(s.front)
-
-	s.front = nil
+	if s.front != nil {
+		s.front.Free()
+		s.front = nil
+	}
 }
 
-// NewLinkedStack creates a new stack from a slice.
+// link_elements creates a slice of StackNode pointers from the given elements,
+// linking each node to the next node in the slice. The last node in the slice
+// will have no previous node.
 //
 // Parameters:
-//   - elems: The elements to add to the stack.
+//   - elems: A slice of elements to be converted into stack nodes.
 //
 // Returns:
-//   - *LinkedStack[T]: The new stack. Never returns nil.
-func NewLinkedStack[T any](elems ...T) *LinkedStack[T] {
-	stack := new(LinkedStack[T])
-	if len(elems) == 0 {
-		return stack
+//   - []*internal.StackNode[T]: A slice of linked stack nodes, where each node
+//     points to the next node as its previous node.
+func link_elements[T any](elems []T) []*internal.StackNode[T] {
+	slice := make([]*internal.StackNode[T], 0, len(elems))
+
+	for _, elem := range elems {
+		node := internal.NewStackNode(elem)
+		slice = append(slice, node)
 	}
 
-	_, _ = stack.PushMany(elems)
-	return stack
+	for i := range slice[:len(slice)-1] {
+		_ = slice[i].SetPrev(slice[i+1])
+	}
+
+	return slice
 }
 
-// PushMany adds multiple elements to the stack in reverse order.
+// PushMany adds multiple elements to the stack in reverse order, meaning that the
+// first element in the slice will be at the top of the stack after the operation.
 //
 // Parameters:
 //   - elems: A slice of elements to be added to the stack.
@@ -167,10 +177,6 @@ func NewLinkedStack[T any](elems ...T) *LinkedStack[T] {
 // Returns:
 //   - uint: The number of elements successfully pushed onto the stack.
 //   - error: An error of type common.ErrNilReceiver if the receiver is nil.
-//
-// The elements are pushed onto the stack in reverse order, meaning the last element
-// in the slice will be at the top of the stack after the operation. If the slice
-// is empty, the function returns immediately with zero elements pushed.
 func (s *LinkedStack[T]) PushMany(elems []T) (uint, error) {
 	lenElems := uint(len(elems))
 	if lenElems == 0 {
@@ -182,12 +188,12 @@ func (s *LinkedStack[T]) PushMany(elems []T) (uint, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for i := len(elems) - 1; i >= 0; i-- {
-		node := internal.NewStackNode(elems[i])
-		_ = node.SetPrev(s.front)
+	slice := link_elements(elems)
 
-		s.front = node
-	}
+	slice[len(slice)-1].SetPrev(s.front)
+	s.front = slice[0]
+
+	clear(slice)
 
 	return lenElems, nil
 }

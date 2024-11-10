@@ -3,125 +3,128 @@ package queue
 import (
 	"sync"
 
+	"github.com/PlayerR9/mygo-lib/CustomData/queue/internal"
 	"github.com/PlayerR9/mygo-lib/common"
 )
 
 // LinkedQueue is a simple implementation of a queue that is backed by an linked list.
 // This implementation is thread-safe.
+//
+// An empty linked queue can be created using the `queue := new(queue.LinkedQueue[T])` constructor.
 type LinkedQueue[T any] struct {
 	// front is the front of the queue.
-	front *QueueNode[T]
-
-	// front_mu is the mutex.
-	front_mu sync.RWMutex
+	front *internal.QueueNode[T]
 
 	// back is the back of the queue.
-	back *QueueNode[T]
+	back *internal.QueueNode[T]
 
-	// back_mu is the mutex.
-	back_mu sync.RWMutex
+	// front_mu is the mutex for the front of the queue.
+	front_mu sync.RWMutex
+
+	// back_mu is the mutex for the back of the queue.
+	back_mu sync.Mutex
 }
 
 // Enqueue implements Queue.
 //
 // Never returns ErrFullQueue.
-func (s *LinkedQueue[T]) Enqueue(elem T) error {
-	if s == nil {
+func (q *LinkedQueue[T]) Enqueue(elem T) error {
+	if q == nil {
 		return common.ErrNilReceiver
 	}
 
-	node := &QueueNode[T]{
-		elem: elem,
+	q.back_mu.Lock()
+	defer q.back_mu.Unlock()
+
+	node := internal.NewQueueNode(elem)
+
+	if q.back == nil {
+		q.front_mu.Lock()
+		defer q.front_mu.Unlock()
+
+		q.back = node
+		q.front = node
+
+		return nil
 	}
 
-	s.back_mu.Lock()
-	defer s.back_mu.Unlock()
-
-	if s.back == nil {
-		s.front_mu.Lock()
-		s.front = node
-		s.front_mu.Unlock()
-	} else {
-		s.back.next = node
-	}
-
-	s.back = node
+	_ = q.back.SetNext(node)
+	q.back = node
 
 	return nil
 }
 
 // Dequeue implements Queue.
-func (s *LinkedQueue[T]) Dequeue() (T, error) {
-	if s == nil {
+func (q *LinkedQueue[T]) Dequeue() (T, error) {
+	if q == nil {
 		return *new(T), common.ErrNilReceiver
 	}
 
-	s.front_mu.RLock()
-	is_empty := s.front == nil
-	s.front_mu.RUnlock()
+	q.front_mu.Lock()
+	defer q.front_mu.Unlock()
 
-	if is_empty {
+	if q.front == nil {
 		return *new(T), ErrEmptyQueue
 	}
 
-	s.front_mu.Lock()
-	defer s.front_mu.Unlock()
+	front := q.front
+	q.front = front.MustGetNext()
+	_ = front.SetNext(nil) // Clear the reference.
 
-	top := s.front
-	s.front = top.next
-
-	if s.front == nil {
-		s.back_mu.Lock()
-		s.back = nil
-		s.back_mu.Unlock()
+	if q.front == nil {
+		q.back_mu.Lock()
+		q.back = nil
+		q.back_mu.Unlock()
 	}
 
-	top.next = nil // Clear the reference.
-
-	return top.elem, nil
+	elem := front.MustGetElem()
+	return elem, nil
 }
 
 // Front implements Queue.
-func (s *LinkedQueue[T]) Front() (T, error) {
-	if s == nil {
+func (q *LinkedQueue[T]) Front() (T, error) {
+	if q == nil {
 		return *new(T), common.ErrNilReceiver
 	}
 
-	s.front_mu.RLock()
-	front := s.front
-	s.front_mu.RUnlock()
+	q.front_mu.RLock()
+	defer q.front_mu.RUnlock()
 
-	if front == nil {
+	if q.front == nil {
 		return *new(T), ErrEmptyQueue
-	} else {
-		return front.elem, nil
 	}
+
+	elem := q.front.MustGetElem()
+	return elem, nil
 }
 
 // IsEmpty implements Queue.
-func (s *LinkedQueue[T]) IsEmpty() bool {
-	if s == nil {
+func (q *LinkedQueue[T]) IsEmpty() bool {
+	if q == nil {
 		return true
 	}
 
-	s.front_mu.RLock()
-	defer s.front_mu.RUnlock()
+	q.front_mu.RLock()
+	defer q.front_mu.RUnlock()
 
-	return s.front == nil
+	return q.front == nil
 }
 
 // Size implements Queue.
-func (s *LinkedQueue[T]) Size() uint {
-	if s == nil {
+func (q *LinkedQueue[T]) Size() uint {
+	if q == nil {
 		return 0
 	}
 
-	s.front_mu.RLock()
-	defer s.front_mu.RUnlock()
+	q.front_mu.RLock()
+	defer q.front_mu.RUnlock()
+
+	q.back_mu.Lock()
+	defer q.back_mu.Unlock()
 
 	var size uint
 
-	for c := s.front; c != nil; c = c.next {
+	for c := q.front; c != nil; c = c.MustGetNext() {
 		size++
 	}
 
@@ -129,79 +132,103 @@ func (s *LinkedQueue[T]) Size() uint {
 }
 
 // Free implements common.Type.
-func (s *LinkedQueue[T]) Free() {
-	if s == nil {
+func (q *LinkedQueue[T]) Free() {
+	if q == nil {
 		return
 	}
 
-	s.front_mu.Lock()
-	defer s.front_mu.Unlock()
+	q.front_mu.Lock()
+	defer q.front_mu.Unlock()
 
-	if s.front != nil {
-		s.front.Free()
+	q.back_mu.Lock()
+	defer q.back_mu.Unlock()
+
+	if q.front != nil {
+		q.front.Free()
+		q.front = nil
 	}
 
-	s.front = nil
-
-	s.back_mu.Lock()
-	defer s.back_mu.Unlock()
-
-	s.back = nil
+	q.back = nil
 }
 
-// NewLinkedQueue creates a new queue from a slice.
+// Reset implements common.Resetter.
+func (q *LinkedQueue[T]) Reset() {
+	if q == nil {
+		return
+	}
+
+	q.front_mu.Lock()
+	defer q.front_mu.Unlock()
+
+	q.back_mu.Lock()
+	defer q.back_mu.Unlock()
+
+	if q.front != nil {
+		q.front.Free()
+		q.front = nil
+	}
+
+	q.back = nil
+}
+
+// link_elements creates a slice of *QueueNode from the given elements,
+// linking each node to the next node in the slice. The last node in the
+// slice will have no previous node.
 //
 // Parameters:
-//   - elems: The elements to add to the queue.
+//   - elems: A slice of elements to be converted into queue nodes.
 //
 // Returns:
-//   - *LinkedQueue[T]: The new queue. Never returns nil.
-func NewLinkedQueue[T any](elems ...T) *LinkedQueue[T] {
-	if len(elems) == 0 {
-		return &LinkedQueue[T]{
-			front: nil,
-			back:  nil,
-		}
+//   - []*QueueNode[T]: A slice of linked queue nodes, where each node points
+//     to the next node as its previous node.
+func link_elements[T any](elems []T) []*internal.QueueNode[T] {
+	slice := make([]*internal.QueueNode[T], 0, len(elems))
+
+	for _, elem := range elems {
+		node := internal.NewQueueNode(elem)
+		slice = append(slice, node)
 	}
 
-	first_node := &QueueNode[T]{
-		elem: elems[0],
+	for i := range slice[:len(slice)-1] {
+		_ = slice[i].SetNext(slice[i+1])
 	}
 
-	last_node := first_node
-
-	for _, elem := range elems[1:] {
-		node := &QueueNode[T]{
-			elem: elem,
-		}
-
-		last_node.next = node
-		last_node = node
-	}
-
-	return &LinkedQueue[T]{
-		front: first_node,
-		back:  last_node,
-	}
+	return slice
 }
 
-// Reset resets the queue for reuse. Does nothing if the receiver is nil.
-func (s *LinkedQueue[T]) Reset() {
-	if s == nil {
-		return
+// EnqueueMany adds multiple elements to the queue in the order they are passed.
+//
+// Parameters:
+//   - elems: A slice of elements to be added to the queue.
+//
+// Returns:
+//   - uint: The number of elements successfully enqueued onto the queue.
+//   - error: An error of type common.ErrNilReceiver if the receiver is nil.
+func (q *LinkedQueue[T]) EnqueueMany(elems []T) (uint, error) {
+	lenElems := uint(len(elems))
+	if lenElems == 0 {
+		return 0, nil
+	} else if q == nil {
+		return 0, common.ErrNilReceiver
 	}
 
-	s.front_mu.Lock()
-	defer s.front_mu.Unlock()
+	q.back_mu.Lock()
+	defer q.back_mu.Unlock()
 
-	if s.front != nil {
-		s.front.Free()
+	slice := link_elements(elems)
+
+	if q.back == nil {
+		q.front_mu.Lock()
+		defer q.front_mu.Unlock()
+
+		q.front = slice[0]
+	} else {
+		_ = q.back.SetNext(slice[0])
 	}
 
-	s.front = nil
+	q.back = slice[len(slice)-1]
 
-	s.back_mu.Lock()
-	defer s.back_mu.Unlock()
+	clear(slice)
 
-	s.back = nil
+	return lenElems, nil
 }

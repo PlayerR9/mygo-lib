@@ -8,6 +8,8 @@ import (
 
 // ArrayQueue is a simple implementation of a queue that is backed by an array.
 // This implementation is thread-safe.
+//
+// An empty array queue can be created using the `queue := new(ArrayQueue[T])` constructor.
 type ArrayQueue[T any] struct {
 	// slice is the backing array.
 	slice []T
@@ -22,149 +24,129 @@ type ArrayQueue[T any] struct {
 // Enqueue implements Queue.
 //
 // Never returns ErrFullQueue.
-func (s *ArrayQueue[T]) Enqueue(elem T) error {
-	if s == nil {
+func (q *ArrayQueue[T]) Enqueue(elem T) error {
+	if q == nil {
 		return common.ErrNilReceiver
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	q.mu.Lock()
+	defer q.mu.Unlock()
 
-	s.slice = append(s.slice, elem)
-	s.lenSlice++
+	q.slice = append(q.slice, elem)
+	q.lenSlice++
 
 	return nil
 }
 
 // Dequeue implements Queue.
-func (s *ArrayQueue[T]) Dequeue() (T, error) {
-	if s == nil {
+func (q *ArrayQueue[T]) Dequeue() (T, error) {
+	if q == nil {
 		return *new(T), common.ErrNilReceiver
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	q.mu.Lock()
+	defer q.mu.Unlock()
 
-	if s.lenSlice == 0 {
+	if q.lenSlice == 0 {
 		return *new(T), ErrEmptyQueue
 	}
 
-	top := s.slice[0]
-	s.slice = s.slice[1:]
-	s.lenSlice--
+	front := q.slice[0]
+	q.slice = q.slice[1:]
+	q.lenSlice--
 
-	return top, nil
+	return front, nil
 }
 
 // Front implements Queue.
-func (s *ArrayQueue[T]) Front() (T, error) {
-	if s == nil {
+func (q *ArrayQueue[T]) Front() (T, error) {
+	if q == nil {
 		return *new(T), common.ErrNilReceiver
 	}
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	q.mu.RLock()
+	defer q.mu.RUnlock()
 
-	if s.lenSlice == 0 {
+	if q.lenSlice == 0 {
 		return *new(T), ErrEmptyQueue
 	}
 
-	return s.slice[0], nil
+	return q.slice[0], nil
 }
 
 // IsEmpty implements Queue.
-func (s *ArrayQueue[T]) IsEmpty() bool {
-	if s == nil {
+func (q *ArrayQueue[T]) IsEmpty() bool {
+	if q == nil {
 		return true
 	}
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	q.mu.RLock()
+	defer q.mu.RUnlock()
 
-	return s.lenSlice == 0
+	return q.lenSlice == 0
 }
 
 // Size implements Queue.
-func (s *ArrayQueue[T]) Size() uint {
-	if s == nil {
+func (q *ArrayQueue[T]) Size() uint {
+	if q == nil {
 		return 0
 	}
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	q.mu.RLock()
+	defer q.mu.RUnlock()
 
-	return s.lenSlice
+	return q.lenSlice
 }
 
 // Free implements common.Type.
-func (s *ArrayQueue[T]) Free() {
-	if s == nil {
+func (q *ArrayQueue[T]) Free() {
+	if q == nil {
 		return
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	q.mu.Lock()
+	defer q.mu.Unlock()
 
-	clear(s.slice)
-	s.slice = nil
-	s.lenSlice = 0
+	clear(q.slice)
+	q.slice = nil
+	q.lenSlice = 0
 }
 
-// NewArrayQueue creates a new queue from a slice.
-//
-// Parameters:
-//   - elems: The elements to add to the queue.
-//
-// Returns:
-//   - *ArrayQueue[T]: The new queue. Never returns nil.
-func NewArrayQueue[T any](elems ...T) *ArrayQueue[T] {
-	queue := new(ArrayQueue[T])
-	if len(elems) == 0 {
-		return queue
-	}
-
-	_, _ = queue.EnqueueMany(elems)
-	return queue
-}
-
-// Reset resets the queue for reuse. Does nothing if the receiver is nil.
-func (s *ArrayQueue[T]) Reset() {
-	if s == nil {
+// Reset implements common.Resetter.
+func (q *ArrayQueue[T]) Reset() {
+	if q == nil {
 		return
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	q.mu.Lock()
+	defer q.mu.Unlock()
 
-	clear(s.slice)
-	s.slice = nil
-	s.lenSlice = 0
+	clear(q.slice)
+	q.slice = nil
+	q.lenSlice = 0
 }
 
-// EnqueueMany adds multiple elements to the queue.
+// EnqueueMany adds multiple elements to the queue in the order they are passed.
 //
 // Parameters:
 //   - elems: A slice of elements to be added to the queue.
 //
 // Returns:
-//   - uint: The number of elements successfully added to the queue.
+//   - uint: The number of elements successfully enqueued onto the queue.
 //   - error: An error of type common.ErrNilReceiver if the receiver is nil.
-func (s *ArrayQueue[T]) EnqueueMany(elems []T) (uint, error) {
+func (q *ArrayQueue[T]) EnqueueMany(elems []T) (uint, error) {
 	lenElems := uint(len(elems))
 	if lenElems == 0 {
 		return 0, nil
-	} else if s == nil {
+	} else if q == nil {
 		return 0, common.ErrNilReceiver
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	q.mu.Lock()
+	defer q.mu.Unlock()
 
-	slice := make([]T, len(elems))
-	copy(slice, elems)
-
-	s.slice = append(s.slice, slice...)
-	s.lenSlice += lenElems
+	q.slice = append(q.slice, elems...)
+	q.lenSlice += lenElems
 
 	return lenElems, nil
 }

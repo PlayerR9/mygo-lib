@@ -1,15 +1,13 @@
 package queue
 
 import (
-	"slices"
 	"sync"
 
 	"github.com/PlayerR9/mygo-lib/common"
 )
 
 // Refuse is a wrapper for a Queue that allows elements to be refused, meaning that
-// once dequeued we can decide whether to accept that dequeuing sequence or not. If not,
-// they will be put back on the end of the queue.
+// once dequeued we can decide whether to accept that dequeueing sequence or not.
 type Refuse[T any] struct {
 	// queue is the internal queue.
 	queue Queue[T]
@@ -17,7 +15,7 @@ type Refuse[T any] struct {
 	// dequeued is the queue of elements that were dequeued.
 	dequeued []T
 
-	// mu is the mutex for the RefusableStack.
+	// mu is the mutex for the RefusableQueue.
 	mu sync.RWMutex
 }
 
@@ -101,14 +99,14 @@ func (r *Refuse[T]) Dequeue() (T, error) {
 		return *new(T), common.NewErrInvalidObject("Dequeue")
 	}
 
-	top, err := r.queue.Dequeue()
+	front, err := r.queue.Dequeue()
 	if err != nil {
 		return *new(T), err
 	}
 
-	r.dequeued = append(r.dequeued, top)
+	r.dequeued = append(r.dequeued, front)
 
-	return top, nil
+	return front, nil
 }
 
 // Front implements the Queue interface.
@@ -127,12 +125,28 @@ func (r *Refuse[T]) Front() (T, error) {
 		return *new(T), common.NewErrInvalidObject("Front")
 	}
 
-	top, err := r.queue.Front()
+	front, err := r.queue.Front()
 	if err != nil {
 		return *new(T), err
 	}
 
-	return top, nil
+	return front, nil
+}
+
+// Free implements common.Type.
+func (r *Refuse[T]) Free() {
+	if r == nil {
+		return
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	Free(r.queue)
+	r.queue = nil
+
+	clear(r.dequeued)
+	r.dequeued = nil
 }
 
 // Reset implements common.Resetter.
@@ -142,17 +156,9 @@ func (r *Refuse[T]) Reset() {
 	}
 
 	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if r.queue == nil {
-		clear(r.dequeued)
-		r.dequeued = nil
-
-		return
-	}
+	defer r.mu.Lock()
 
 	Reset(r.queue)
-	r.queue = nil
 
 	clear(r.dequeued)
 	r.dequeued = nil
@@ -171,7 +177,8 @@ func NewRefuse[T any](queue Queue[T]) *Refuse[T] {
 	}
 
 	return &Refuse[T]{
-		queue: queue,
+		queue:    queue,
+		dequeued: nil,
 	}
 }
 
@@ -221,7 +228,7 @@ func (r *Refuse[T]) Refuse() error {
 		err = r.queue.Enqueue(r.dequeued[i])
 	}
 
-	if i == len(r.dequeued) {
+	if i == 0 {
 		clear(r.dequeued)
 		r.dequeued = nil
 	} else {
@@ -254,10 +261,10 @@ func (r *Refuse[T]) RefuseOne() error {
 		return common.NewErrInvalidObject("RefuseOne")
 	}
 
-	top := r.dequeued[0]
+	front := r.dequeued[0]
 	r.dequeued = r.dequeued[1:]
 
-	err := r.queue.Enqueue(top)
+	err := r.queue.Enqueue(front)
 	return err
 }
 
@@ -282,8 +289,6 @@ func (r *Refuse[T]) Dequeued() []T {
 
 	slice := make([]T, len(r.dequeued))
 	copy(slice, r.dequeued)
-
-	slices.Reverse(slice)
 
 	return slice
 }

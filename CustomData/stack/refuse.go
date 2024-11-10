@@ -178,7 +178,8 @@ func NewRefuse[T any](stack Stack[T]) *Refuse[T] {
 	}
 
 	return &Refuse[T]{
-		stack: stack,
+		stack:  stack,
+		popped: nil,
 	}
 }
 
@@ -293,19 +294,4 @@ func (r *Refuse[T]) Popped() []T {
 	slices.Reverse(slice)
 
 	return slice
-}
-
-// IsValid checks whether the Refuse stack is in a valid state.
-//
-// Returns:
-//   - bool: True if the stack is valid and not nil, false otherwise.
-func (r *Refuse[T]) IsValid() bool {
-	if r == nil {
-		return false
-	}
-
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	return r.stack != nil
 }

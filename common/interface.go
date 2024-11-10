@@ -16,7 +16,7 @@ type Freeable interface {
 	Free()
 }
 
-// Free calls the `Free()` method on the given argument if it implements the
+/* // Free calls the `Free()` method on the given argument if it implements the
 // `Type` interface. If the argument is `nil` or does not implement `Type`,
 // this function does nothing.
 //
@@ -35,7 +35,7 @@ func Free(arg any) bool {
 	a.Free()
 
 	return true
-}
+} */
 
 // Resetter is an interface defining the behavior of types that can
 // reset their internal state.

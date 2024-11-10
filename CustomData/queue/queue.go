@@ -30,15 +30,15 @@ type Queue[T any] interface {
 	//   - any other error that may be returned.
 	Dequeue() (T, error)
 
-	// Front returns the element at front of the queue without removing it.
+	// Front returns the element at the start of the queue without removing it.
 	//
 	// Returns:
-	//   - T: The element at the front of the queue.
+	//   - T: The element at the start of the queue.
 	//   - error: An error if the element could not be peeked from the queue.
 	//
 	// Errors:
 	//   - common.ErrNilReceiver: If the receiver is nil.
-	//   - ErrEmptyQueue: If the queue is empty.
+	//   - common.ErrEmptyQueue: If the queue is empty.
 	//   - any other error that may be returned.
 	Front() (T, error)
 
@@ -59,19 +59,20 @@ type Queue[T any] interface {
 	IsEmpty() bool
 }
 
-// Enqueue adds multiple elements to the queue in the order they are provided.
+// Enqueue adds multiple elements to the queue in the order they are passed. If the queue implements
+// the `EnqueueMany` method, then that method is used instead.
 //
 // Parameters:
 //   - queue: The queue to which the elements are added.
 //   - elems: Variadic parameters representing the elements to be added.
 //
 // Returns:
-//   - uint: The number of elements successfully pushed onto the queue.
-//   - error: An error if the queue is nil or if there is an issue pushing one of the elements.
+//   - uint: The number of elements successfully enqueued onto the queue.
+//   - error: An error if the queue is nil or if there is an issue enqueuing one of the elements.
 //
 // Errors:
 //   - common.ErrNilParam: If the queue is nil.
-//   - ErrFullQueue: If not all elements could be pushed onto the queue.
+//   - ErrFullQueue: If not all elements could be enqueued onto the queue.
 //   - any error returned by the `Enqueue()` method of the queue.
 func Enqueue[T any](queue Queue[T], elems ...T) (uint, error) {
 	lenElems := uint(len(elems))
@@ -81,49 +82,60 @@ func Enqueue[T any](queue Queue[T], elems ...T) (uint, error) {
 		return 0, common.NewErrNilParam("queue")
 	}
 
-	var i uint
-	var err error
-
-	for i = 0; i < lenElems && err == nil; i++ {
-		err = queue.Enqueue(elems[i])
+	q, ok := queue.(interface{ EnqueueMany(elems []T) (uint, error) })
+	if ok {
+		n, err := q.EnqueueMany(elems)
+		return n, err
 	}
 
-	return i, err
+	for i, elem := range elems {
+		err := queue.Enqueue(elem)
+		if err != nil {
+			return uint(i), err
+		}
+	}
+
+	return lenElems, nil
 }
 
-// Free frees the queue. If the queue implements `Freeable` interface, then its `Free()`
-// method is called. If not, then the queue is cleared by dequeuing all elements from the queue.
+// Free frees the queue. If the queue implements `Type` interface, then its `Free()`
+// method is called. If not, then the queue is cleared by dequeueing all elements from the queue.
 //
 // Parameters:
 //   - queue: The queue to free.
 func Free[T any](queue Queue[T]) {
-	ok := common.Free(queue)
-	if ok {
+	if queue == nil {
 		return
 	}
 
-	var err error
+	if q, ok := queue.(common.Freeable); ok {
+		q.Free()
+		return
+	}
 
-	for err == nil {
-		_, err = queue.Dequeue()
+	for {
+		_, err := queue.Dequeue()
+		if err != nil {
+			break
+		}
 	}
 }
 
 // Reset resets the queue for reuse. If the queue implements `Resetter` interface,
-// then its `Reset()` method is called. If not, then the queue is cleared by dequeuing all
+// then its `Reset()` method is called. If not, then the queue is cleared by dequeueing all
 // elements from the queue.
 //
 // Parameters:
 //   - queue: The queue to reset.
 func Reset[T any](queue Queue[T]) {
-	ok := common.Reset(queue)
-	if ok {
+	if queue == nil || common.Reset(queue) {
 		return
 	}
 
-	var err error
-
-	for err == nil {
-		_, err = queue.Dequeue()
+	for {
+		_, err := queue.Dequeue()
+		if err != nil {
+			break
+		}
 	}
 }

@@ -10,8 +10,7 @@ import (
 // ArrayStack is a simple implementation of a stack that is backed by an array.
 // This implementation is thread-safe.
 //
-// An empty array stack can be created using the `stack := new(ArrayStack[T])` constructor
-// or the provided `NewArrayStack` function.
+// An empty array stack can be created using the `stack := new(ArrayStack[T])` constructor.
 type ArrayStack[T any] struct {
 	// slice is the backing array.
 	slice []T
@@ -128,25 +127,8 @@ func (s *ArrayStack[T]) Reset() {
 	s.lenSlice = 0
 }
 
-// NewArrayStack creates a new stack from a slice.
-//
-// Parameters:
-//   - elems: The elements to add to the stack.
-//
-// Returns:
-//   - *ArrayStack[T]: The new stack. Never returns nil.
-func NewArrayStack[T any](elems ...T) *ArrayStack[T] {
-	stack := new(ArrayStack[T])
-
-	if len(elems) == 0 {
-		return stack
-	}
-
-	_, _ = stack.PushMany(elems)
-	return stack
-}
-
-// PushMany adds multiple elements to the stack in reverse order.
+// PushMany adds multiple elements to the stack in reverse order, meaning that the
+// first element in the slice will be at the top of the stack after the operation.
 //
 // Parameters:
 //   - elems: A slice of elements to be added to the stack.
@@ -154,10 +136,6 @@ func NewArrayStack[T any](elems ...T) *ArrayStack[T] {
 // Returns:
 //   - uint: The number of elements successfully pushed onto the stack.
 //   - error: An error of type common.ErrNilReceiver if the receiver is nil.
-//
-// The elements are pushed onto the stack in reverse order, meaning the last element
-// in the slice will be at the top of the stack after the operation. If the slice is
-// empty, the function returns immediately with zero elements pushed.
 func (s *ArrayStack[T]) PushMany(elems []T) (uint, error) {
 	lenElems := uint(len(elems))
 	if lenElems == 0 {
