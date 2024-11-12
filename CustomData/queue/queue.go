@@ -71,7 +71,7 @@ type Queue[T any] interface {
 //   - error: An error if the queue is nil or if there is an issue enqueuing one of the elements.
 //
 // Errors:
-//   - common.ErrNilParam: If the queue is nil.
+//   - common.ErrBadParam: If the queue is nil.
 //   - ErrFullQueue: If not all elements could be enqueued onto the queue.
 //   - any error returned by the `Enqueue()` method of the queue.
 func Enqueue[T any](queue Queue[T], elems ...T) (uint, error) {

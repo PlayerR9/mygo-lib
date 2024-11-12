@@ -109,7 +109,7 @@ type List[T any] interface {
 //   - error: An error if the list is nil or if there is an issue enlisting one of the elements.
 //
 // Errors:
-//   - common.ErrNilParam: If the list is nil.
+//   - common.ErrBadParam: If the list is nil.
 //   - ErrFullList: If not all elements could be enlistd onto the list.
 //   - any error returned by the `Enlist()` method of the list.
 func Enlist[T any](list List[T], elems ...T) (uint, error) {
@@ -148,7 +148,7 @@ func Enlist[T any](list List[T], elems ...T) (uint, error) {
 //   - error: An error if the list is nil or if there is an issue prepending one of the elements.
 //
 // Errors:
-//   - common.ErrNilParam: If the list is nil.
+//   - common.ErrBadParam: If the list is nil.
 //   - ErrFullList: If not all elements could be prepended onto the list.
 //   - any error returned by the `Enlist()` method of the list.
 func Prepend[T any](list List[T], elems ...T) (uint, error) {

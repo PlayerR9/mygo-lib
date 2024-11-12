@@ -207,7 +207,7 @@ func Get[T Infoer](node *Node) (T, error) {
 //   - node: The node to get the value of.
 //
 // Panics:
-//   - common.ErrNilParam: If the node is nil.
+//   - common.ErrBadParam: If the node is nil.
 //   - common.ErrInvalidType: If the information of the node is not of type T, including if node.Info is nil.
 //
 // Returns:

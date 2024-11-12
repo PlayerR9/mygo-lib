@@ -71,7 +71,7 @@ type Stack[T any] interface {
 //   - error: An error if the stack is nil or if there is an issue pushing one of the elements.
 //
 // Errors:
-//   - common.ErrNilParam: If the stack is nil.
+//   - common.ErrBadParam: If the stack is nil.
 //   - ErrFullStack: If not all elements could be pushed onto the stack.
 //   - any error returned by the `Push()` method of the stack.
 func Push[T any](stack Stack[T], elems ...T) (uint, error) {
