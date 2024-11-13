@@ -95,6 +95,8 @@ type List[T any] interface {
 	//
 	// If the receiver is nil, then true is returned.
 	IsEmpty() bool
+
+	common.Typer
 }
 
 // Enlist adds multiple elements to the list in the order they are passed. If the list implements
@@ -175,29 +177,6 @@ func Prepend[T any](list List[T], elems ...T) (uint, error) {
 	return lenElems, nil
 }
 
-// Free frees the list. If the list implements `Type` interface, then its `Free()`
-// method is called. If not, then the list is cleared by delisting all elements from the list.
-//
-// Parameters:
-//   - list: The list to free.
-func Free[T any](list List[T]) {
-	if list == nil {
-		return
-	}
-
-	if l, ok := list.(common.Freeable); ok {
-		l.Free()
-		return
-	}
-
-	for {
-		_, err := list.Delist()
-		if err != nil {
-			break
-		}
-	}
-}
-
 // Reset resets the list for reuse. If the list implements `Resetter` interface,
 // then its `Reset()` method is called. If not, then the list is cleared by delisting all
 // elements from the list.
@@ -205,7 +184,12 @@ func Free[T any](list List[T]) {
 // Parameters:
 //   - list: The list to reset.
 func Reset[T any](list List[T]) {
-	if list == nil || common.Reset(list) {
+	if list == nil {
+		return
+	}
+
+	if l, ok := list.(common.Resetter); ok {
+		l.Reset()
 		return
 	}
 

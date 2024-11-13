@@ -131,7 +131,7 @@ func (q *LinkedQueue[T]) Size() uint {
 	return size
 }
 
-// Free implements common.Type.
+// Free implements common.Typer.
 func (q *LinkedQueue[T]) Free() {
 	if q == nil {
 		return

@@ -203,7 +203,7 @@ func (l *LinkedList[T]) Size() uint {
 	return size
 }
 
-// Free implements common.Type.
+// Free implements common.Typer.
 func (l *LinkedList[T]) Free() {
 	if l == nil {
 		return

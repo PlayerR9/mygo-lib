@@ -57,6 +57,8 @@ type Queue[T any] interface {
 	//
 	// If the receiver is nil, then true is returned.
 	IsEmpty() bool
+
+	common.Typer
 }
 
 // Enqueue adds multiple elements to the queue in the order they are passed. If the queue implements
@@ -96,29 +98,6 @@ func Enqueue[T any](queue Queue[T], elems ...T) (uint, error) {
 	}
 
 	return lenElems, nil
-}
-
-// Free frees the queue. If the queue implements `Type` interface, then its `Free()`
-// method is called. If not, then the queue is cleared by dequeueing all elements from the queue.
-//
-// Parameters:
-//   - queue: The queue to free.
-func Free[T any](queue Queue[T]) {
-	if queue == nil {
-		return
-	}
-
-	if q, ok := queue.(common.Freeable); ok {
-		q.Free()
-		return
-	}
-
-	for {
-		_, err := queue.Dequeue()
-		if err != nil {
-			break
-		}
-	}
 }
 
 // Reset resets the queue for reuse. If the queue implements `Resetter` interface,

@@ -143,7 +143,7 @@ func (r *Refuse[T]) Free() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	Free(r.stack)
+	r.stack.Free()
 	r.stack = nil
 
 	clear(r.popped)

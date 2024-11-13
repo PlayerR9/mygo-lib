@@ -126,7 +126,7 @@ func (c *Capacity[T]) Size() uint {
 	return c.size
 }
 
-// Free implements common.Type.
+// Free implements common.Typer.
 func (c *Capacity[T]) Free() {
 	if c == nil {
 		return
@@ -138,8 +138,7 @@ func (c *Capacity[T]) Free() {
 	c.capacity = 0
 	c.size = 0
 
-	Free(c.stack)
-
+	c.stack.Free()
 	c.stack = nil
 }
 

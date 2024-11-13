@@ -98,7 +98,7 @@ func (q *ArrayQueue[T]) Size() uint {
 	return q.lenSlice
 }
 
-// Free implements common.Type.
+// Free implements common.Typer.
 func (q *ArrayQueue[T]) Free() {
 	if q == nil {
 		return

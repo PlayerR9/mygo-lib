@@ -151,7 +151,7 @@ func (l *ArrayList[T]) Size() uint {
 	return l.lenSlice
 }
 
-// Free implements common.Type.
+// Free implements common.Typer.
 func (l *ArrayList[T]) Free() {
 	if l == nil {
 		return
@@ -177,6 +177,10 @@ func (l *ArrayList[T]) Reset() {
 	clear(l.slice)
 	l.slice = nil
 	l.lenSlice = 0
+}
+
+func NewArrayList[T any]() *ArrayList[T] {
+
 }
 
 // EnlistMany adds multiple elements to the list in the order they are passed.

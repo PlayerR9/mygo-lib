@@ -99,7 +99,7 @@ func (s *ArrayStack[T]) Size() uint {
 	return s.lenSlice
 }
 
-// Free implements common.Type.
+// Free implements common.Typer.
 func (s *ArrayStack[T]) Free() {
 	if s == nil {
 		return

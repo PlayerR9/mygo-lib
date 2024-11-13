@@ -113,7 +113,7 @@ func (s *LinkedStack[T]) Size() uint {
 	return size
 }
 
-// Free implements common.Type.
+// Free implements common.Typer.
 func (s *LinkedStack[T]) Free() {
 	if s == nil {
 		return

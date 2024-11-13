@@ -133,7 +133,7 @@ func (r *Refuse[T]) Front() (T, error) {
 	return front, nil
 }
 
-// Free implements common.Type.
+// Free implements common.Typer.
 func (r *Refuse[T]) Free() {
 	if r == nil {
 		return
@@ -142,7 +142,7 @@ func (r *Refuse[T]) Free() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	Free(r.queue)
+	r.queue.Free()
 	r.queue = nil
 
 	clear(r.dequeued)

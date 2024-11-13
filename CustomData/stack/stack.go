@@ -57,6 +57,8 @@ type Stack[T any] interface {
 	//
 	// If the receiver is nil, then true is returned.
 	IsEmpty() bool
+
+	common.Typer
 }
 
 // Push adds multiple elements to the stack in reverse order. If the stack implements
@@ -96,29 +98,6 @@ func Push[T any](stack Stack[T], elems ...T) (uint, error) {
 	}
 
 	return lenElems, nil
-}
-
-// Free frees the stack. If the stack implements `Type` interface, then its `Free()`
-// method is called. If not, then the stack is cleared by popping all elements from the stack.
-//
-// Parameters:
-//   - stack: The stack to free.
-func Free[T any](stack Stack[T]) {
-	if stack == nil {
-		return
-	}
-
-	if s, ok := stack.(common.Freeable); ok {
-		s.Free()
-		return
-	}
-
-	for {
-		_, err := stack.Pop()
-		if err != nil {
-			break
-		}
-	}
 }
 
 // Reset resets the stack for reuse. If the stack implements `Resetter` interface,
