@@ -29,11 +29,9 @@ func Free(arg **Ref) {
 		return
 	}
 
-	ptr := (*arg).ptr
-	if ptr == nil {
-		return
-	}
+	(*arg).free()
+	(*arg).free = nil
+	(*arg).ptr = nil
 
-	ptr.Free()
 	*arg = nil
 }

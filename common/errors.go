@@ -102,32 +102,3 @@ func NewErrAt(idx uint, inner error) error {
 func (e ErrAt) Unwrap() error {
 	return e.Inner
 }
-
-// ErrInvalidObject occurs when an object is no longer valid, especially
-// when the method `Free()` is called.
-type ErrInvalidObject struct {
-	// MethodName is the name of the method that caused the error.
-	MethodName string
-}
-
-// Error implements the error interface.
-func (e ErrInvalidObject) Error() string {
-	return "cannot call method " + strconv.Quote(e.MethodName) + ": object is no longer valid"
-}
-
-// NewErrInvalidObject creates a new ErrInvalidObject error.
-//
-// Parameters:
-//   - method_name: The name of the method that caused the error.
-//
-// Returns:
-//   - error: The new error. Never returns nil.
-//
-// Format:
-//
-//	"cannot call method <method_name>: object is no longer valid"
-func NewErrInvalidObject(method_name string) error {
-	return &ErrInvalidObject{
-		MethodName: method_name,
-	}
-}

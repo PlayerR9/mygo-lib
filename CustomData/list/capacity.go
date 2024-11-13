@@ -178,22 +178,6 @@ func (c *Capacity[T]) Size() uint {
 	return c.size
 }
 
-// Free implements List.
-func (c *Capacity[T]) Free() {
-	if c == nil {
-		return
-	}
-
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	c.capacity = 0
-	c.size = 0
-
-	c.list.Free()
-	c.list = nil
-}
-
 // Reset implements common.Resetter.
 func (c *Capacity[T]) Reset() {
 	if c == nil {
@@ -236,4 +220,20 @@ func WithCapacity[T any](list List[T], capacity uint) (*Capacity[T], error) {
 		size:     size,
 		capacity: capacity,
 	}, nil
+}
+
+// Free implements List.
+func (c *Capacity[T]) Free() {
+	if c == nil {
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.capacity = 0
+	c.size = 0
+
+	c.list.Free()
+	c.list = nil
 }

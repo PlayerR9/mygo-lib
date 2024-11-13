@@ -151,20 +151,6 @@ func (l *ArrayList[T]) Size() uint {
 	return l.lenSlice
 }
 
-// Free implements common.Typer.
-func (l *ArrayList[T]) Free() {
-	if l == nil {
-		return
-	}
-
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	clear(l.slice)
-	l.slice = nil
-	l.lenSlice = 0
-}
-
 // Reset implements common.Resetter.
 func (l *ArrayList[T]) Reset() {
 	if l == nil {
@@ -177,10 +163,6 @@ func (l *ArrayList[T]) Reset() {
 	clear(l.slice)
 	l.slice = nil
 	l.lenSlice = 0
-}
-
-func NewArrayList[T any]() *ArrayList[T] {
-
 }
 
 // EnlistMany adds multiple elements to the list in the order they are passed.
@@ -231,4 +213,17 @@ func (l *ArrayList[T]) PrependMany(elems []T) (uint, error) {
 	l.lenSlice += lenElems
 
 	return lenElems, nil
+}
+
+func (l *ArrayList[T]) free() {
+	if l == nil {
+		return
+	}
+
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	clear(l.slice)
+	l.slice = nil
+	l.lenSlice = 0
 }

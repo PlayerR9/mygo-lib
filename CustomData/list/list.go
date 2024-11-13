@@ -95,8 +95,6 @@ type List[T any] interface {
 	//
 	// If the receiver is nil, then true is returned.
 	IsEmpty() bool
-
-	common.Typer
 }
 
 // Enlist adds multiple elements to the list in the order they are passed. If the list implements
