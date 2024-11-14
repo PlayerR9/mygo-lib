@@ -5,6 +5,7 @@ import (
 
 	"github.com/PlayerR9/mygo-lib/CustomData/stack/internal"
 	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/mem"
 )
 
 // LinkedStack is a simple implementation of a stack that is backed by an linked list.
@@ -13,7 +14,7 @@ import (
 // An empty linked stack can be created using the `stack := new(stack.LinkedStack[T])` constructor.
 type LinkedStack[T any] struct {
 	// front is the front of the stack.
-	front *internal.StackNode[T]
+	front *mem.Ref[*internal.StackNode[T]]
 
 	// mu is the mutex.
 	mu sync.RWMutex
@@ -38,7 +39,9 @@ func (s *LinkedStack[T]) Push(elem T) error {
 		return nil
 	}
 
-	_ = node.SetPrev(s.front)
+	// Transfer ownership of `s.front` to `node`.
+	_ = node.MustBorrow().SetPrev(s.front)
+
 	s.front = node
 
 	return nil
@@ -58,6 +61,7 @@ func (s *LinkedStack[T]) Pop() (T, error) {
 	}
 
 	top := s.front
+
 	s.front = top.MustGetPrev()
 
 	_ = top.SetPrev(nil) // Clear the reference.

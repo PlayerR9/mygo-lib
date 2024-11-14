@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/mem"
 )
 
 // Capacity is a wrapper for a Queue that allows for a specified capacity.
@@ -37,7 +38,7 @@ func (c *Capacity[T]) Enqueue(elem T) error {
 		return ErrFullQueue
 	} else if c.queue == nil {
 		// Method `Free()` was called.
-		return common.NewErrInvalidObject("Enqueue")
+		return mem.NewErrInvalidObject("Enqueue")
 	}
 
 	err := c.queue.Enqueue(elem)
@@ -66,7 +67,7 @@ func (c *Capacity[T]) Dequeue() (T, error) {
 		return *new(T), ErrEmptyQueue
 	} else if c.queue == nil {
 		// Method `Free()` was called.
-		return *new(T), common.NewErrInvalidObject("Dequeue")
+		return *new(T), mem.NewErrInvalidObject("Dequeue")
 	}
 
 	front, err := c.queue.Dequeue()
@@ -95,7 +96,7 @@ func (c *Capacity[T]) Front() (T, error) {
 		return *new(T), ErrEmptyQueue
 	} else if c.queue == nil {
 		// Method `Free()` was called.
-		return *new(T), common.NewErrInvalidObject("Front")
+		return *new(T), mem.NewErrInvalidObject("Front")
 	}
 
 	front, err := c.queue.Front()

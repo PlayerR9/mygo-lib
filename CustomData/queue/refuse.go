@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/mem"
 )
 
 // Refuse is a wrapper for a Queue that allows elements to be refused, meaning that
@@ -32,7 +33,7 @@ func (r *Refuse[T]) Size() uint {
 	defer r.mu.RUnlock()
 
 	if r.queue == nil {
-		panic(common.NewErrInvalidObject("Size"))
+		panic(mem.NewErrInvalidObject("Size"))
 	}
 
 	size := r.queue.Size()
@@ -52,7 +53,7 @@ func (r *Refuse[T]) IsEmpty() bool {
 	defer r.mu.RUnlock()
 
 	if r.queue == nil {
-		panic(common.NewErrInvalidObject("IsEmpty"))
+		panic(mem.NewErrInvalidObject("IsEmpty"))
 	}
 
 	ok := r.queue.IsEmpty()
@@ -72,7 +73,7 @@ func (r *Refuse[T]) Enqueue(elem T) error {
 	defer r.mu.Unlock()
 
 	if r.queue == nil {
-		return common.NewErrInvalidObject("Enqueue")
+		return mem.NewErrInvalidObject("Enqueue")
 	}
 
 	err := r.queue.Enqueue(elem)
@@ -96,7 +97,7 @@ func (r *Refuse[T]) Dequeue() (T, error) {
 	defer r.mu.Unlock()
 
 	if r.queue == nil {
-		return *new(T), common.NewErrInvalidObject("Dequeue")
+		return *new(T), mem.NewErrInvalidObject("Dequeue")
 	}
 
 	front, err := r.queue.Dequeue()
@@ -122,7 +123,7 @@ func (r *Refuse[T]) Front() (T, error) {
 	defer r.mu.RUnlock()
 
 	if r.queue == nil {
-		return *new(T), common.NewErrInvalidObject("Front")
+		return *new(T), mem.NewErrInvalidObject("Front")
 	}
 
 	front, err := r.queue.Front()
@@ -218,7 +219,7 @@ func (r *Refuse[T]) Refuse() error {
 	defer r.mu.Unlock()
 
 	if r.queue == nil {
-		return common.NewErrInvalidObject("Refuse")
+		return mem.NewErrInvalidObject("Refuse")
 	}
 
 	var i int
@@ -258,7 +259,7 @@ func (r *Refuse[T]) RefuseOne() error {
 	if len(r.dequeued) == 0 {
 		return nil
 	} else if r.queue == nil {
-		return common.NewErrInvalidObject("RefuseOne")
+		return mem.NewErrInvalidObject("RefuseOne")
 	}
 
 	front := r.dequeued[0]

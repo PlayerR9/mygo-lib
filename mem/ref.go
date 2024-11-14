@@ -94,7 +94,7 @@ func (ref Ref[T]) Borrow() (T, error) {
 //   - *ErrInvalidObject: If the Ref is already freed.
 func (ref Ref[T]) MustBorrow() T {
 	if ref.free == nil {
-		panic(NewErrInvalidObject("Borrow()"))
+		panic(NewErrInvalidObject("MustBorrow()"))
 	}
 
 	return ref.ptr

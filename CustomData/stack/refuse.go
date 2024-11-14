@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/mem"
 )
 
 // Refuse is a wrapper for a Stack that allows elements to be refused, meaning that
@@ -33,7 +34,7 @@ func (r *Refuse[T]) Size() uint {
 	defer r.mu.RUnlock()
 
 	if r.stack == nil {
-		panic(common.NewErrInvalidObject("Size"))
+		panic(mem.NewErrInvalidObject("Size"))
 	}
 
 	size := r.stack.Size()
@@ -53,7 +54,7 @@ func (r *Refuse[T]) IsEmpty() bool {
 	defer r.mu.RUnlock()
 
 	if r.stack == nil {
-		panic(common.NewErrInvalidObject("IsEmpty"))
+		panic(mem.NewErrInvalidObject("IsEmpty"))
 	}
 
 	ok := r.stack.IsEmpty()
@@ -73,7 +74,7 @@ func (r *Refuse[T]) Push(elem T) error {
 	defer r.mu.Unlock()
 
 	if r.stack == nil {
-		return common.NewErrInvalidObject("Push")
+		return mem.NewErrInvalidObject("Push")
 	}
 
 	err := r.stack.Push(elem)
@@ -97,7 +98,7 @@ func (r *Refuse[T]) Pop() (T, error) {
 	defer r.mu.Unlock()
 
 	if r.stack == nil {
-		return *new(T), common.NewErrInvalidObject("Pop")
+		return *new(T), mem.NewErrInvalidObject("Pop")
 	}
 
 	top, err := r.stack.Pop()
@@ -123,7 +124,7 @@ func (r *Refuse[T]) Peek() (T, error) {
 	defer r.mu.RUnlock()
 
 	if r.stack == nil {
-		return *new(T), common.NewErrInvalidObject("Peek")
+		return *new(T), mem.NewErrInvalidObject("Peek")
 	}
 
 	top, err := r.stack.Peek()
@@ -219,7 +220,7 @@ func (r *Refuse[T]) Refuse() error {
 	defer r.mu.Unlock()
 
 	if r.stack == nil {
-		return common.NewErrInvalidObject("Refuse")
+		return mem.NewErrInvalidObject("Refuse")
 	}
 
 	var i int
@@ -259,7 +260,7 @@ func (r *Refuse[T]) RefuseOne() error {
 	if len(r.popped) == 0 {
 		return nil
 	} else if r.stack == nil {
-		return common.NewErrInvalidObject("RefuseOne")
+		return mem.NewErrInvalidObject("RefuseOne")
 	}
 
 	top := r.popped[len(r.popped)-1]

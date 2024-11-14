@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/mem"
 )
 
 // StackNode is a node in the stack.
@@ -12,27 +13,36 @@ type StackNode[T any] struct {
 	elem T
 
 	// prev is the previous node.
-	prev *StackNode[T]
+	prev *mem.Ref[*StackNode[T]]
 
 	// mu is the mutex.
 	mu sync.RWMutex
 }
 
-// Free implements common.Type.
-func (node *StackNode[T]) Free() {
+// free is a private method that frees the stack node.
+func (node *StackNode[T]) free() error {
 	if node == nil {
-		return
+		return mem.ErrNilReceiver
 	}
 
 	node.mu.Lock()
 	defer node.mu.Unlock()
 
-	if node.prev != nil {
-		node.prev.Free()
-		node.prev = nil
+	if node.prev == nil {
+		node.elem = *new(T)
+
+		return nil
 	}
 
+	err := mem.Free("node.prev", node.prev)
+	if err != nil {
+		return err
+	}
+
+	node.prev = nil
 	node.elem = *new(T)
+
+	return nil
 }
 
 // NewStackNode creates a new stack node with the given element.
@@ -41,28 +51,40 @@ func (node *StackNode[T]) Free() {
 //   - elem: The element of the node.
 //
 // Returns:
-//   - *StackNode[T]: The new node. Never returns nil.
-func NewStackNode[T any](elem T) *StackNode[T] {
-	return &StackNode[T]{
+//   - *mem.Ref[*StackNode[T]]: The new node. Never returns nil.
+func NewStackNode[T any](elem T) *mem.Ref[*StackNode[T]] {
+	node := &StackNode[T]{
 		elem: elem,
 		prev: nil,
 	}
+
+	ref := mem.New(node, node.free)
+	return ref
 }
 
-// SetPrev sets the previous node of the stack node.
+// SetPrev sets the previous node of the stack node. This also transfers
+// ownership of `prev` node to the receiver.
 //
 // Parameters:
 //   - prev: The node to set as the previous node.
 //
 // Returns:
 //   - error: An error of type common.ErrNilReceiver if the receiver is nil.
-func (n *StackNode[T]) SetPrev(prev *StackNode[T]) error {
+func (n *StackNode[T]) SetPrev(prev *mem.Ref[*StackNode[T]]) error {
 	if n == nil {
 		return common.ErrNilReceiver
 	}
 
 	n.mu.Lock()
 	defer n.mu.Unlock()
+
+	if n.prev != nil {
+		// Free the previous node.
+		err := mem.Free("n.prev", n.prev)
+		if err != nil {
+			return err
+		}
+	}
 
 	n.prev = prev
 

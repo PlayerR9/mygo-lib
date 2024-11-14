@@ -1,6 +1,9 @@
 package tables
 
-import "github.com/PlayerR9/mygo-lib/common"
+import (
+	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/mem"
+)
 
 // Table is a boundless table, meaning that the table can be thought of
 // as being surrounded by an infinite sea of zero value cells. Thus, out-of-bounds
@@ -88,7 +91,7 @@ func (t Table[T]) CellAt(x, y uint) (T, error) {
 	}
 
 	if t.table == nil {
-		return *new(T), common.NewErrInvalidObject("CellAt")
+		return *new(T), mem.NewErrInvalidObject("CellAt")
 	}
 
 	return t.table[y][x], nil
@@ -118,7 +121,7 @@ func (t *Table[T]) SetCellAt(value T, x, y uint) error {
 	}
 
 	if t.table == nil {
-		return common.NewErrInvalidObject("SetCellAt")
+		return mem.NewErrInvalidObject("SetCellAt")
 	}
 
 	t.table[y][x] = value
@@ -147,7 +150,7 @@ func (t *Table[T]) ResizeHeight(new_height uint) error {
 	}
 
 	if t.table == nil {
-		return common.NewErrInvalidObject("ResizeHeight")
+		return mem.NewErrInvalidObject("ResizeHeight")
 	}
 
 	if new_height < t.height {
@@ -184,7 +187,7 @@ func (t *Table[T]) ResizeWidth(new_width uint) error {
 	}
 
 	if t.table == nil {
-		return common.NewErrInvalidObject("ResizeWidth")
+		return mem.NewErrInvalidObject("ResizeWidth")
 	}
 
 	if new_width < t.width {

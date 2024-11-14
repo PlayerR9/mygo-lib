@@ -58,3 +58,47 @@ func Free(target string, arg Freeable) error {
 
 	return e
 }
+
+// FreeUnless calls the `Free()` method on a Freeable interface and releases the memory used by it,
+// unless the `Free()` method returns ErrNilReceiver or ErrInvalidObject.
+//
+// Parameters:
+//   - target: The name of the target whose memory is being released.
+//   - arg: A pointer to a Freeable interface implementation.
+//
+// Returns:
+//   - first bool: true if the memory was released, false otherwise.
+//   - second error: An error that may occur when releasing the memory, if any.
+//
+// Errors:
+//   - NewErrNilParam: If the argument or its dereferenced value is nil.
+//   - *ErrFree: If the `Free()` method returns an error and it is not ErrNilReceiver or ErrInvalidObject.
+//
+// In essence, this is used for optionally releasing memory if not done already. Therefore, this is a
+// more comprehensive shorthand for the following:
+//
+//	if arg != nil {
+//		if err := Free("arg", arg); err != nil {
+//			return err
+//		}
+//	}
+func FreeUnless(target string, arg Freeable) (bool, error) {
+	if arg == nil {
+		return false, nil
+	}
+
+	err := arg.Free()
+	if err == nil || err == ErrNilReceiver {
+		return true, nil
+	}
+
+	switch err := err.(type) {
+	case *ErrInvalidObject:
+		return false, nil
+	case *ErrFree:
+		_ = err.AppendTarget(target)
+		return false, err
+	default:
+		return false, NewErrFree(target, err)
+	}
+}

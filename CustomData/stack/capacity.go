@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/mem"
 )
 
 // Capacity is a wrapper for a Stack that allows for a specified capacity.
@@ -37,7 +38,7 @@ func (c *Capacity[T]) Push(elem T) error {
 		return ErrFullStack
 	} else if c.stack == nil {
 		// Method `Free()` was called.
-		return common.NewErrInvalidObject("Push")
+		return mem.NewErrInvalidObject("Push")
 	}
 
 	err := c.stack.Push(elem)
@@ -66,7 +67,7 @@ func (c *Capacity[T]) Pop() (T, error) {
 		return *new(T), ErrEmptyStack
 	} else if c.stack == nil {
 		// Method `Free()` was called.
-		return *new(T), common.NewErrInvalidObject("Pop")
+		return *new(T), mem.NewErrInvalidObject("Pop")
 	}
 
 	top, err := c.stack.Pop()
@@ -95,7 +96,7 @@ func (c *Capacity[T]) Peek() (T, error) {
 		return *new(T), ErrEmptyStack
 	} else if c.stack == nil {
 		// Method `Free()` was called.
-		return *new(T), common.NewErrInvalidObject("Peek")
+		return *new(T), mem.NewErrInvalidObject("Peek")
 	}
 
 	top, err := c.stack.Peek()
