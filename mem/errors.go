@@ -1,9 +1,24 @@
 package mem
 
 import (
-	"fmt"
+	"errors"
+	"slices"
 	"strconv"
+	"strings"
 )
+
+var (
+	// ErrNilReceiver occurs when a method is called on a receiver who was not
+	// expected to be nil. This error can be checked with the == operator.
+	//
+	// Format:
+	// 	"receiver must not be nil"
+	ErrNilReceiver error
+)
+
+func init() {
+	ErrNilReceiver = errors.New("receiver must not be nil")
+}
 
 // ErrBadParam occurs when a parameter is bad. (i.e., not a valid value).
 type ErrBadParam struct {
@@ -105,51 +120,78 @@ func NewErrInvalidObject(method_name string) error {
 	}
 }
 
-// ErrInvalidType occurs when a type is not as expected.
-type ErrInvalidType struct {
-	// Type is the expected type.
-	Type any
+// ErrFree occurs when the `Free()` function fails.
+type ErrFree struct {
+	// Target is the target of the `Free()` function.
+	Targets []string
 
-	// Got is the actual type.
-	Got any
+	// Inner is the error returned by the `Free()` function.
+	Inner error
 }
 
-// Error implements the error interface.
-func (e ErrInvalidType) Error() string {
-	var expected string
+// Error implements error.
+func (e ErrFree) Error() string {
+	var msg string
 
-	expected = fmt.Sprintf("%T", e.Type)
-
-	var got string
-
-	if e.Got == nil {
-		got = "<nil>"
+	if e.Inner == nil {
+		msg = "something went wrong"
 	} else {
-		got = fmt.Sprintf("%T", e.Got)
+		msg = e.Inner.Error()
 	}
 
-	return "want " + expected + ", got " + got
+	if len(e.Targets) == 0 {
+		return "Free() = " + msg
+	}
+
+	targets := make([]string, len(e.Targets))
+	copy(targets, e.Targets)
+
+	slices.Reverse(targets)
+
+	return "Free(" + strings.Join(targets, " -> ") + ") = " + msg
 }
 
-// NewErrInvalidType creates a new ErrInvalidType error with the specified expected type and actual type.
+// NewErrFree creates a new ErrFree error.
 //
 // Parameters:
-//   - want: The expected type.
-//   - got: The actual type.
+//   - target: The innermost target.
+//   - inner: The error returned by the `free()` method.
 //
 // Returns:
-//   - error: The new ErrInvalidType error. Never returns nil.
+//   - error: The new error. Never returns nil.
 //
 // Format:
 //
-//	"want <want>, got <got>"
+//	"Free(<target>) = <inner>"
 //
 // Where:
-//   - <want>: The expected type.
-//   - <got>: The actual type. If nil, "<nil>" is used instead.
-func NewErrInvalidType(got any, want any) error {
-	return &ErrInvalidType{
-		Type: want,
-		Got:  got,
+//   - <target>: The target whose `free()` method failed.
+//   - <inner>: The error returned by the `free()` method. If nil, "something went wrong" is used instead.
+func NewErrFree(target string, inner error) error {
+	return &ErrFree{
+		Targets: []string{target},
+		Inner:   inner,
 	}
+}
+
+// Unwrap returns the inner error.
+//
+// Returns:
+//   - error: The inner error.
+func (e ErrFree) Unwrap() error {
+	return e.Inner
+}
+
+// AppendTarget appends the given target to the list of targets.
+//
+// Returns:
+//   - error: ErrNilReceiver if the receiver is nil.
+func (e *ErrFree) AppendTarget(target string) error {
+	if e == nil {
+		return ErrNilReceiver
+	}
+
+	e.Targets = append(e.Targets, target)
+
+	return nil
 }

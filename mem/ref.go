@@ -3,25 +3,44 @@ package mem
 // Ref is a utility type for manual memory management. In essence, given a pointer `p`,
 // Ref allows for `p` to be borrowed by any other function without exposing their `Free()`
 // method; thus, preventing them from freeing the memory used by `p`.
-type Ref struct {
+type Ref[T any] struct {
 	// free is the function that will be called when the Ref is freed.
-	free func()
+	free func() error
 
 	// ptr is the pointer that is being borrowed.
-	ptr any
+	ptr T
 }
 
-// NewRef creates a new Ref instance that wraps a given pointer.
+// Free implements Freeable.
+func (ref *Ref[T]) Free() error {
+	if ref == nil {
+		return ErrNilReceiver
+	} else if ref.free == nil {
+		// Method `Free()` was called.
+		return NewErrInvalidObject("Free")
+	}
+
+	err := ref.free()
+	if err != nil {
+		return err
+	}
+
+	ref.free = nil
+	ref.ptr = *new(T)
+
+	return nil
+}
+
+// New creates a new instance of Ref that allows to manually deallocate a pointer.
 //
 // Parameters:
-//   - ptr: The Freeable pointer to be wrapped.
-//   - free: The function that will be called when the Ref is freed.
+//   - ptr: The pointer managed by Ref.
+//   - freeFn: The function that handles the deallocation of the pointer.
 //
 // Returns:
-//   - *Ref: A new Ref instance that holds the provided pointer. Never returns nil.
+//   - *Ref: A new instance of Ref with the given pointer and free function.
 //
-// Panics:
-// - ErrBadParam: If the provided pointer is nil or the provided free function is nil.
+// This function returns a nil reference iff the provided freeFn function is nil.
 //
 // Example:
 //
@@ -29,57 +48,54 @@ type Ref struct {
 //		// Your fields go here...
 //	}
 //
-//	func (mt *MyType) free() {
+//	func (mt *MyType) free() error {
 //		if mt == nil {
-//			return
+//			return mem.ErrNilReceiver
 //		}
 //
 //		// Handle the cleanup procedure here....
+//
+//		return nil
 //	}
 //
-//	func NewMyType(/* */) *mem.Ref {
+//	func NewMyType(/* */) *mem.Ref[*MyType] {
 //		mt := // Construct here your type...
 //
-//		ref := NewRef(mt, mt.free)
+//		ref := mem.New[*MyType](mt, mt.free)
 //		return ref
 //	}
-func NewRef(ptr any, free func()) *Ref {
-	if ptr == nil {
-		panic(NewErrNilParam("ptr"))
-	} else if free == nil {
-		panic(NewErrNilParam("free"))
+func New[T any](ptr T, freeFn func() error) *Ref[T] {
+	if freeFn == nil {
+		return nil
 	}
 
-	return &Ref{
+	return &Ref[T]{
 		ptr:  ptr,
-		free: free,
+		free: freeFn,
 	}
 }
 
-// Borrow borrows the value stored by a given Ref as a given type T.
-//
-// Parameters:
-//   - r: The Ref that holds the value to be borrowed.
+// Borrow returns the pointer to the value.
 //
 // Returns:
-//   - T: The value stored by the Ref as type T.
+//   - T: The pointer to the value.
+//   - error: An error of type *ErrInvalidObject if the Ref is already freed.
+func (ref Ref[T]) Borrow() (T, error) {
+	if ref.free == nil {
+		return *new(T), NewErrInvalidObject("Borrow()")
+	}
+
+	return ref.ptr, nil
+}
+
+// MustBorrow returns the pointer to the value.
 //
 // Panics:
-//   - If the Ref is nil.
-//   - If the value stored by the Ref is not of type T.
-func Borrow[T any](ref *Ref) T {
-	if ref == nil {
-		panic(NewErrNilParam("ref"))
-	}
-
+//   - *ErrInvalidObject: If the Ref is already freed.
+func (ref Ref[T]) MustBorrow() T {
 	if ref.free == nil {
-		panic(NewErrInvalidObject("Borrow"))
+		panic(NewErrInvalidObject("Borrow()"))
 	}
 
-	val, ok := ref.ptr.(T)
-	if !ok {
-		panic(NewErrInvalidType(ref.ptr, *new(T)))
-	}
-
-	return val
+	return ref.ptr
 }

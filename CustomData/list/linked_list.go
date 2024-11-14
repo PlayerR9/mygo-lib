@@ -5,6 +5,7 @@ import (
 
 	"github.com/PlayerR9/mygo-lib/CustomData/list/internal"
 	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/mem"
 )
 
 // LinkedList is a simple implementation of a list that is backed by an linked list.
@@ -16,7 +17,7 @@ type LinkedList[T any] struct {
 	front *internal.ListNode[T]
 
 	// back is the back of the list.
-	back *internal.ListNode[T]
+	back *mem.Ref[*internal.ListNode[T]]
 
 	// front_mu is the mutex for the front of the list.
 	front_mu sync.RWMutex
@@ -42,12 +43,16 @@ func (l *LinkedList[T]) Enlist(elem T) error {
 		l.front_mu.Lock()
 		defer l.front_mu.Unlock()
 
-		l.front = node
+		l.front = node.Borrow()
+		l.back = node
 	} else {
-		_ = l.back.SetNext(node)
-	}
+		back := l.back.Borrow()
 
-	l.back = node
+		_ = back.SetNext(node.Borrow())
+
+		// WARNING: Lost ownership of back.
+		l.back = node
+	}
 
 	return nil
 }
@@ -64,7 +69,9 @@ func (l *LinkedList[T]) Prepend(elem T) error {
 	defer l.front_mu.Unlock()
 
 	node := internal.NewListNode(elem)
-	_ = node.SetNext(l.front)
+	ptr := node.Borrow()
+
+	_ = ptr.SetNext(l.front)
 
 	if l.front == nil {
 		l.back_mu.Lock()
@@ -73,7 +80,7 @@ func (l *LinkedList[T]) Prepend(elem T) error {
 		l.back = node
 	}
 
-	l.front = node
+	l.front = ptr
 
 	return nil
 }
@@ -166,7 +173,7 @@ func (l *LinkedList[T]) Back() (T, error) {
 		return *new(T), ErrEmptyList
 	}
 
-	elem := l.back.MustGetElem()
+	elem := l.back.Borrow().MustGetElem()
 	return elem, nil
 }
 
@@ -203,26 +210,6 @@ func (l *LinkedList[T]) Size() uint {
 	return size
 }
 
-// Free implements common.Typer.
-func (l *LinkedList[T]) Free() {
-	if l == nil {
-		return
-	}
-
-	l.front_mu.Lock()
-	defer l.front_mu.Unlock()
-
-	l.back_mu.Lock()
-	defer l.back_mu.Unlock()
-
-	if l.front != nil {
-		l.front.Free()
-		l.front = nil
-	}
-
-	l.back = nil
-}
-
 // Reset implements common.Resetter.
 func (l *LinkedList[T]) Reset() {
 	if l == nil {
@@ -235,12 +222,71 @@ func (l *LinkedList[T]) Reset() {
 	l.back_mu.Lock()
 	defer l.back_mu.Unlock()
 
-	if l.front != nil {
-		l.front.Free()
-		l.front = nil
+	if l.back != nil {
+		err := mem.Free("l.back", l.back)
+		if err != nil {
+			panic(err)
+		}
+
+		l.back = nil
 	}
 
-	l.back = nil
+	l.front = nil
+}
+
+// free is a private method that frees the list.
+func (l *LinkedList[T]) free() error {
+	if l == nil {
+		return mem.ErrNilReceiver
+	}
+
+	l.front_mu.Lock()
+	defer l.front_mu.Unlock()
+
+	l.back_mu.Lock()
+	defer l.back_mu.Unlock()
+
+	if l.back != nil {
+		err := mem.Free("l.back", l.back)
+		if err != nil {
+			return err
+		}
+
+		l.back = nil
+	}
+
+	l.front = nil
+
+	return nil
+}
+
+// NewLinkedList creates a new LinkedList with the given elements.
+//
+// The given elements are added to the list in the order they are passed.
+// The first element passed will be the front of the list, and the last
+// element passed will be the back of the list.
+//
+// Parameters:
+//   - elems: A variable number of elements to be added to the list.
+//
+// Returns:
+//   - *LinkedList[T]: A pointer to a new LinkedList containing the given
+//     elements.
+func NewLinkedList[T any](elems ...T) *LinkedList[T] {
+	list := new(LinkedList[T])
+
+	if len(elems) == 0 {
+		return list
+	}
+
+	slice := link_elements(elems)
+
+	list.front = slice[0]
+	list.back = slice[len(slice)-1]
+
+	clear(slice)
+
+	return list
 }
 
 // link_elements creates a slice of *ListNode from the given elements,

@@ -215,6 +215,7 @@ func (l *ArrayList[T]) PrependMany(elems []T) (uint, error) {
 	return lenElems, nil
 }
 
+// free is a private method that frees the list.
 func (l *ArrayList[T]) free() {
 	if l == nil {
 		return
@@ -226,4 +227,19 @@ func (l *ArrayList[T]) free() {
 	clear(l.slice)
 	l.slice = nil
 	l.lenSlice = 0
+}
+
+func NewArrayList[T any](elems ...T) *ArrayList[T] {
+	list := new(ArrayList[T])
+
+	if len(elems) == 0 {
+		return list
+	}
+
+	list.slice = make([]T, len(elems))
+	copy(list.slice, elems)
+
+	list.lenSlice = uint(len(elems))
+
+	return list
 }

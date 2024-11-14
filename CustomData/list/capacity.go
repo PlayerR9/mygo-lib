@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/mem"
 )
 
 // Capacity is a wrapper for a List that allows for a specified capacity.
@@ -24,7 +25,7 @@ type Capacity[T any] struct {
 // Enlist implements List.
 //
 // Errors:
-//   - common.ErrInvalidObject: If the method `Free()` is called.
+//   - mem.ErrInvalidObject: If the method `Free()` is called.
 func (c *Capacity[T]) Enlist(elem T) error {
 	if c == nil {
 		return common.ErrNilReceiver
@@ -37,7 +38,7 @@ func (c *Capacity[T]) Enlist(elem T) error {
 		return ErrFullList
 	} else if c.list == nil {
 		// Method `Free()` was called.
-		return common.NewErrInvalidObject("Enlist")
+		return mem.NewErrInvalidObject("Enlist")
 	}
 
 	err := c.list.Enlist(elem)
@@ -53,7 +54,7 @@ func (c *Capacity[T]) Enlist(elem T) error {
 // Prepend implements List.
 //
 // Errors:
-//   - common.ErrInvalidObject: If the method `Free()` is called.
+//   - mem.ErrInvalidObject: If the method `Free()` is called.
 func (c *Capacity[T]) Prepend(elem T) error {
 	if c == nil {
 		return common.ErrNilReceiver
@@ -66,7 +67,7 @@ func (c *Capacity[T]) Prepend(elem T) error {
 		return ErrFullList
 	} else if c.list == nil {
 		// Method `Free()` was called.
-		return common.NewErrInvalidObject("Prepend")
+		return mem.NewErrInvalidObject("Prepend")
 	}
 
 	err := c.list.Prepend(elem)
@@ -82,7 +83,7 @@ func (c *Capacity[T]) Prepend(elem T) error {
 // Delist implements List.
 //
 // Errors:
-//   - common.ErrInvalidObject: If the method `Free()` is called.
+//   - mem.ErrInvalidObject: If the method `Free()` is called.
 func (c *Capacity[T]) Delist() (T, error) {
 	if c == nil {
 		return *new(T), common.ErrNilReceiver
@@ -95,7 +96,7 @@ func (c *Capacity[T]) Delist() (T, error) {
 		return *new(T), ErrEmptyList
 	} else if c.list == nil {
 		// Method `Free()` was called.
-		return *new(T), common.NewErrInvalidObject("Delist")
+		return *new(T), mem.NewErrInvalidObject("Delist")
 	}
 
 	front, err := c.list.Delist()
@@ -111,7 +112,7 @@ func (c *Capacity[T]) Delist() (T, error) {
 // Front implements List.
 //
 // Errors:
-//   - common.ErrInvalidObject: If the method `Free()` is called.
+//   - mem.ErrInvalidObject: If the method `Free()` is called.
 func (c *Capacity[T]) Front() (T, error) {
 	if c == nil {
 		return *new(T), common.ErrNilReceiver
@@ -124,7 +125,7 @@ func (c *Capacity[T]) Front() (T, error) {
 		return *new(T), ErrEmptyList
 	} else if c.list == nil {
 		// Method `Free()` was called.
-		return *new(T), common.NewErrInvalidObject("Front")
+		return *new(T), mem.NewErrInvalidObject("Front")
 	}
 
 	front, err := c.list.Front()
@@ -134,7 +135,7 @@ func (c *Capacity[T]) Front() (T, error) {
 // Back implements List.
 //
 // Errors:
-//   - common.ErrInvalidObject: If the method `Free()` is called.
+//   - mem.ErrInvalidObject: If the method `Free()` is called.
 func (c *Capacity[T]) Back() (T, error) {
 	if c == nil {
 		return *new(T), common.ErrNilReceiver
@@ -147,7 +148,7 @@ func (c *Capacity[T]) Back() (T, error) {
 		return *new(T), ErrEmptyList
 	} else if c.list == nil {
 		// Method `Free()` was called.
-		return *new(T), common.NewErrInvalidObject("Back")
+		return *new(T), mem.NewErrInvalidObject("Back")
 	}
 
 	back, err := c.list.Back()
@@ -192,6 +193,22 @@ func (c *Capacity[T]) Reset() {
 	c.size = 0
 }
 
+// free is a private method that frees the list.
+func (c *Capacity[T]) free() {
+	if c == nil {
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.capacity = 0
+	c.size = 0
+
+	c.list.Free()
+	c.list = nil
+}
+
 // WithCapacity creates a new list with a specified capacity.
 //
 // Parameters:
@@ -220,20 +237,4 @@ func WithCapacity[T any](list List[T], capacity uint) (*Capacity[T], error) {
 		size:     size,
 		capacity: capacity,
 	}, nil
-}
-
-// Free implements List.
-func (c *Capacity[T]) Free() {
-	if c == nil {
-		return
-	}
-
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	c.capacity = 0
-	c.size = 0
-
-	c.list.Free()
-	c.list = nil
 }

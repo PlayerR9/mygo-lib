@@ -4,42 +4,8 @@ import (
 	"sync"
 
 	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/mem"
 )
-
-// link_node links the given nodes together, where `a` is the previous node and
-// `b` is the next node. If `a` is `nil`, this will set `b.prev` to `nil`.
-// If `b` is `nil`, this will set `a.next` to `nil`. If both are `nil`, this
-// will do nothing.
-//
-// Parameters:
-//   - a: The previous node.
-//   - b: The next node.
-func link_node[T any](a, b *ListNode[T]) {
-	if a == nil && b == nil {
-		return
-	}
-
-	if a == nil {
-		b.mu.Lock()
-		defer b.mu.Unlock()
-
-		b.prev = nil
-
-		return
-	}
-
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
-	if b != nil {
-		b.mu.Lock()
-		defer b.mu.Unlock()
-
-		b.prev = a
-	}
-
-	a.next = b
-}
 
 // ListNode is a node in the list.
 type ListNode[T any] struct {
@@ -50,16 +16,16 @@ type ListNode[T any] struct {
 	next *ListNode[T]
 
 	// prev is the previous node.
-	prev *ListNode[T]
+	prev *mem.Ref[*ListNode[T]]
 
 	// mu is the mutex.
 	mu sync.RWMutex
 }
 
-// Free implements common.Type.
-func (node *ListNode[T]) Free() {
+// free is a private method that frees the list node.
+func (node *ListNode[T]) free() error {
 	if node == nil {
-		return
+		return mem.ErrNilReceiver
 	}
 
 	node.mu.Lock()
@@ -67,15 +33,21 @@ func (node *ListNode[T]) Free() {
 
 	node.elem = *new(T)
 
-	if node.next != nil {
-		node.next.Free()
+	if node.prev == nil {
 		node.next = nil
+
+		return nil
 	}
 
-	if node.prev != nil {
-		node.prev.Free()
-		node.prev = nil
+	err := mem.Free("node.prev", node.prev)
+	if err != nil {
+		return err
 	}
+
+	node.prev = nil
+	node.next = nil
+
+	return nil
 }
 
 // NewListNode creates a new list node with the given element.
@@ -84,13 +56,16 @@ func (node *ListNode[T]) Free() {
 //   - elem: The element of the node.
 //
 // Returns:
-//   - *ListNode[T]: The new node. Never returns nil.
-func NewListNode[T any](elem T) *ListNode[T] {
-	return &ListNode[T]{
+//   - *mem.Ref[*ListNode[T]]: A reference to the list node. Never returns nil.
+func NewListNode[T any](elem T) *mem.Ref[*ListNode[T]] {
+	node := &ListNode[T]{
 		elem: elem,
 		next: nil,
 		prev: nil,
 	}
+
+	ref := mem.New(node, node.free)
+	return ref
 }
 
 // SetNext sets the next node of the list node.
@@ -105,7 +80,21 @@ func (n *ListNode[T]) SetNext(next *ListNode[T]) error {
 		return common.ErrNilReceiver
 	}
 
-	link_node(n, next)
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	if next == nil {
+		n.next = nil
+
+		return nil
+	}
+
+	next.mu.Lock()
+	defer next.mu.Unlock()
+
+	next.prev = n
+
+	n.next = next
 
 	return nil
 }
@@ -122,7 +111,26 @@ func (n *ListNode[T]) SetPrev(prev *ListNode[T]) error {
 		return common.ErrNilReceiver
 	}
 
-	link_node(prev, n)
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	if prev == nil {
+		err := mem.Free("n.prev", n.prev)
+		if err != nil {
+			return err
+		}
+
+		n.prev = nil
+
+		return nil
+	}
+
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	n.prev = prev
+
+	prev.next = n
 
 	return nil
 }

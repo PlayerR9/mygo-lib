@@ -16,22 +16,45 @@ type Freeable interface {
 	//
 	// WARNING: This must NOT be called directly. Instead, use the provided
 	// `Free()` function.
-	Free()
+	//
+	// Returns:
+	//   - error: An error that may occur when releasing the memory.
+	//
+	// Errors:
+	//   - ErrNilReceiver: If the receiver is nil.
+	//   - ErrInvalidObject: If the method `Free()` is called already.
+	//   - any other error returned by the `Free()` method.
+	Free() error
 }
 
-// Free calls the `Free()` method on the Freeable stored in the pointer and sets it to nil.
-// This is a wrapper function that is thread-safe.
+// Free calls the `Free()` method on a Freeable interface and releases the memory used by it.
 //
 // Parameters:
-//   - arg: A double pointer to the Ref instance to be released.
-func Free(arg **Ref) {
-	if arg == nil || *arg == nil {
-		return
+//   - target: The name of the target whose memory is being released.
+//   - arg: A pointer to a Freeable interface implementation.
+//
+// Returns:
+//   - error: An error that may occur when releasing the memory.
+//
+// Errors:
+//   - NewErrNilParam: If the argument or its dereferenced value is nil.
+//   - *ErrFree: If the `Free()` method returns an error.
+func Free(target string, arg Freeable) error {
+	if arg == nil {
+		return NewErrNilParam("arg")
 	}
 
-	(*arg).free()
-	(*arg).free = nil
-	(*arg).ptr = nil
+	err := arg.Free()
+	if err == nil {
+		return nil
+	}
 
-	*arg = nil
+	e, ok := err.(*ErrFree)
+	if !ok {
+		return NewErrFree(target, err)
+	}
+
+	_ = e.AppendTarget(target)
+
+	return e
 }
