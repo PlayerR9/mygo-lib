@@ -16,14 +16,14 @@ type ListNode[T any] struct {
 	next *ListNode[T]
 
 	// prev is the previous node.
-	prev *mem.Ref[*ListNode[T]]
+	prev *ListNode[T]
 
 	// mu is the mutex.
 	mu sync.RWMutex
 }
 
-// free is a private method that frees the list node.
-func (node *ListNode[T]) free() error {
+// Release implements mem.Release.
+func (node *ListNode[T]) Release() error {
 	if node == nil {
 		return mem.ErrNilReceiver
 	}
@@ -39,7 +39,7 @@ func (node *ListNode[T]) free() error {
 		return nil
 	}
 
-	err := mem.Free("node.prev", node.prev)
+	err := mem.Release("node.prev", node.prev)
 	if err != nil {
 		return err
 	}
@@ -56,16 +56,13 @@ func (node *ListNode[T]) free() error {
 //   - elem: The element of the node.
 //
 // Returns:
-//   - *mem.Ref[*ListNode[T]]: A reference to the list node. Never returns nil.
-func NewListNode[T any](elem T) *mem.Ref[*ListNode[T]] {
-	node := &ListNode[T]{
+//   - *ListNode[T]: A reference to the list node. Never returns nil.
+func NewListNode[T any](elem T) *ListNode[T] {
+	return &ListNode[T]{
 		elem: elem,
 		next: nil,
 		prev: nil,
 	}
-
-	ref := mem.New(node, node.free)
-	return ref
 }
 
 // SetNext sets the next node of the list node.

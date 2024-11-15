@@ -120,17 +120,17 @@ func NewErrInvalidObject(method_name string) error {
 	}
 }
 
-// ErrFree occurs when the `Free()` function fails.
-type ErrFree struct {
-	// Target is the target of the `Free()` function.
+// ErrRelease occurs when the `Release()` function fails.
+type ErrRelease struct {
+	// Target is the target of the function.
 	Targets []string
 
-	// Inner is the error returned by the `Free()` function.
+	// Inner is the reason why the function failed.
 	Inner error
 }
 
 // Error implements error.
-func (e ErrFree) Error() string {
+func (e ErrRelease) Error() string {
 	var msg string
 
 	if e.Inner == nil {
@@ -140,7 +140,7 @@ func (e ErrFree) Error() string {
 	}
 
 	if len(e.Targets) == 0 {
-		return "Free() = " + msg
+		return "Release() = " + msg
 	}
 
 	targets := make([]string, len(e.Targets))
@@ -148,27 +148,27 @@ func (e ErrFree) Error() string {
 
 	slices.Reverse(targets)
 
-	return "Free(" + strings.Join(targets, " -> ") + ") = " + msg
+	return "Release(" + strings.Join(targets, " -> ") + ") = " + msg
 }
 
-// NewErrFree creates a new ErrFree error.
+// NewErrRelease creates a new ErrRelease error.
 //
 // Parameters:
 //   - target: The innermost target.
-//   - inner: The error returned by the `free()` method.
+//   - inner: The reason why the function failed.
 //
 // Returns:
 //   - error: The new error. Never returns nil.
 //
 // Format:
 //
-//	"Free(<target>) = <inner>"
+//	"Release(<target>) = <inner>"
 //
 // Where:
-//   - <target>: The target whose `free()` method failed.
-//   - <inner>: The error returned by the `free()` method. If nil, "something went wrong" is used instead.
-func NewErrFree(target string, inner error) error {
-	return &ErrFree{
+//   - <target>: The target of the function.
+//   - <inner>: The error returned by the `Release()` method. If nil, "something went wrong" is used instead.
+func NewErrRelease(target string, inner error) error {
+	return &ErrRelease{
 		Targets: []string{target},
 		Inner:   inner,
 	}
@@ -178,7 +178,7 @@ func NewErrFree(target string, inner error) error {
 //
 // Returns:
 //   - error: The inner error.
-func (e ErrFree) Unwrap() error {
+func (e ErrRelease) Unwrap() error {
 	return e.Inner
 }
 
@@ -186,7 +186,7 @@ func (e ErrFree) Unwrap() error {
 //
 // Returns:
 //   - error: ErrNilReceiver if the receiver is nil.
-func (e *ErrFree) AppendTarget(target string) error {
+func (e *ErrRelease) AppendTarget(target string) error {
 	if e == nil {
 		return ErrNilReceiver
 	}

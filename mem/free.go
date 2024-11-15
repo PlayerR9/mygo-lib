@@ -49,9 +49,9 @@ func Free(target string, arg Freeable) error {
 		return nil
 	}
 
-	e, ok := err.(*ErrFree)
+	e, ok := err.(*ErrRelease)
 	if !ok {
-		return NewErrFree(target, err)
+		return NewErrRelease(target, err)
 	}
 
 	_ = e.AppendTarget(target)
@@ -95,10 +95,10 @@ func FreeUnless(target string, arg Freeable) (bool, error) {
 	switch err := err.(type) {
 	case *ErrInvalidObject:
 		return false, nil
-	case *ErrFree:
+	case *ErrRelease:
 		_ = err.AppendTarget(target)
 		return false, err
 	default:
-		return false, NewErrFree(target, err)
+		return false, NewErrRelease(target, err)
 	}
 }
