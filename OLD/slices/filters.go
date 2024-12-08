@@ -1,6 +1,6 @@
 package slices
 
-import "github.com/PlayerR9/mygo-lib/common"
+import "github.com/PlayerR9/mygo-lib/OLD/common"
 
 // Predicate is a type of function that checks whether an element
 // satisfies a given condition.

@@ -1,6 +1,6 @@
 package pointers
 
-import "github.com/PlayerR9/mygo-lib/common"
+import "github.com/PlayerR9/mygo-lib/OLD/common"
 
 // Pointer is an interface for pointer-like types.
 type Pointer interface {

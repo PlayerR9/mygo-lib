@@ -4,7 +4,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
 )
 
 // Color represents an RGB color.

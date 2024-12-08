@@ -2,11 +2,29 @@ package slices
 
 import "github.com/PlayerR9/mygo-lib/common"
 
-// Builder is a builder for slices. While this is normally not needed, it can have
-// some uses when making many slices one after the other.
-type Builder[T any] struct {
-	// slice is the slice being built.
-	slice []T
+// Builder is a builder for slices. It is only efficent for making many slices one after the other.
+//
+// An empty builder can be created with the `var b Builder[T]` syntax or with the
+// `new(Builder[T])` constructor.
+type Builder[E any] struct {
+	// slice is the underlying slice being built.
+	slice []E
+}
+
+// Reset implements common.Resetter.
+func (b *Builder[E]) Reset() error {
+	if b == nil {
+		return common.ErrNilReceiver
+	}
+
+	if len(b.slice) == 0 {
+		return nil
+	}
+
+	clear(b.slice)
+	b.slice = nil
+
+	return nil
 }
 
 // Append appends an element to the slice being built.
@@ -15,8 +33,11 @@ type Builder[T any] struct {
 //   - elem: The element to append.
 //
 // Returns:
-//   - error: An error if the receiver is nil.
-func (b *Builder[T]) Append(elem T) error {
+//   - error: An error if the element could not be appended.
+//
+// Errors:
+//   - common.ErrNilReceiver: If the receiver is nil.
+func (b *Builder[E]) Append(elem E) error {
 	if b == nil {
 		return common.ErrNilReceiver
 	}
@@ -29,24 +50,14 @@ func (b *Builder[T]) Append(elem T) error {
 // Build builds the slice being built.
 //
 // Returns:
-//   - []T: The slice being built. Nil if no elements were appended.
-func (b Builder[T]) Build() []T {
+//   - []E: The slice being built. Nil if no elements were appended.
+func (b Builder[E]) Build() []E {
 	if len(b.slice) == 0 {
 		return nil
 	}
 
-	slice := make([]T, len(b.slice), len(b.slice))
+	slice := make([]E, len(b.slice), len(b.slice))
 	copy(slice, b.slice)
 
 	return slice
-}
-
-// Reset resets the builder for reuse.
-func (b *Builder[T]) Reset() {
-	if b == nil || len(b.slice) == 0 {
-		return
-	}
-
-	clear(b.slice)
-	b.slice = nil
 }

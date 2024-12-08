@@ -4,7 +4,7 @@ import (
 	"cmp"
 	"slices"
 
-	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
 )
 
 // MayInsert attempts to insert an element into a sorted slice if it is not already present.
