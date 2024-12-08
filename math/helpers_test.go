@@ -4,7 +4,6 @@ import (
 	"slices"
 	"testing"
 
-	vc "github.com/PlayerR9/go-verify/common"
 	"github.com/PlayerR9/go-verify/test"
 )
 
@@ -16,27 +15,26 @@ func TestUintPow(t *testing.T) {
 		want uint
 	}
 
-	tests := test.NewTests[args](func(args args) test.TestingFunc {
-		return func(t *testing.T) {
+	tests := test.NewTestSet[args](func(args args) test.TestingFn {
+		return func() error {
 			res, err := UintPow(args.base, args.exp)
 			if err != nil {
-				vc.FAIL.WrongError(t, "", err)
-				return
+				return test.FAIL.Err(nil, err)
+			} else if res != args.want {
+				return test.FAIL.Int(int(args.want), int(res))
 			}
 
-			if res != args.want {
-				vc.FAIL.WrongInt(t, int(args.want), int(res))
-			}
+			return nil
 		}
 	})
 
-	_ = tests.AddTest("10^4 = 10000", args{
+	_ = tests.Add("10^4 = 10000", args{
 		base: 10,
 		exp:  4,
 		want: 10000,
 	})
 
-	_ = tests.AddTest("9^3 = 729", args{
+	_ = tests.Add("9^3 = 729", args{
 		base: 9,
 		exp:  3,
 		want: 729,
@@ -53,27 +51,29 @@ func TestUintPowSlice(t *testing.T) {
 		want    []uint
 	}
 
-	tests := test.NewTests[args](func(args args) test.TestingFunc {
-		return func(t *testing.T) {
+	tests := test.NewTestSet[args](func(args args) test.TestingFn {
+		return func() error {
 			res, err := UintPowSlice(args.base, args.max_exp)
 			if err != nil {
-				vc.FAIL.WrongError(t, "", err)
-				return
+				return test.FAIL.Err(nil, err)
 			}
 
-			if !slices.Equal(res, args.want) {
-				vc.FAIL.WrongAny(t, args.want, res)
+			ok := slices.Equal(res, args.want)
+			if !ok {
+				return test.FAIL.Any(args.want, res)
 			}
+
+			return nil
 		}
 	})
 
-	_ = tests.AddTest("10^4 = [1, 10, 100, 1000, 10000]", args{
+	_ = tests.Add("10^4 = [1, 10, 100, 1000, 10000]", args{
 		base:    10,
 		max_exp: 4,
 		want:    []uint{1, 10, 100, 1000, 10000},
 	})
 
-	_ = tests.AddTest("2^8 = [1, 2, 4, 8, 16, 32, 64, 128, 256]", args{
+	_ = tests.Add("2^8 = [1, 2, 4, 8, 16, 32, 64, 128, 256]", args{
 		base:    2,
 		max_exp: 8,
 		want:    []uint{1, 2, 4, 8, 16, 32, 64, 128, 256},

@@ -16,8 +16,8 @@ func TestIndicesOf(t *testing.T) {
 		expected []uint
 	}
 
-	tests := test.NewTests(func(args args) test.TestingFunc {
-		return func(t *testing.T) {
+	tests := test.NewTestSet(func(args args) test.TestingFn {
+		return func() error {
 			indices := IndicesOf(args.slice, args.sep)
 
 			ok := slices.Equal(indices, args.expected)
@@ -27,13 +27,13 @@ func TestIndicesOf(t *testing.T) {
 		}
 	})
 
-	_ = tests.AddTest("success", args{
+	_ = tests.Add("success", args{
 		slice:    []string{"a", "b", "c", "a"},
 		sep:      "a",
 		expected: []uint{0, 3},
 	})
 
-	_ = tests.AddTest("no match", args{
+	_ = tests.Add("no match", args{
 		slice:    []string{"a", "b", "c", "d"},
 		sep:      "f",
 		expected: nil,

@@ -30,8 +30,8 @@ func TestApplyFilter(t *testing.T) {
 		expected  []int
 	}
 
-	tests := test.NewTests(func(args args) test.TestingFunc {
-		return func(t *testing.T) {
+	tests := test.NewTestSet(func(args args) test.TestingFn {
+		return func() error {
 			_ = Filter(&args.elems, args.predicate)
 
 			ok := slices.Equal(args.elems, args.expected)
@@ -43,13 +43,13 @@ func TestApplyFilter(t *testing.T) {
 		}
 	})
 
-	_ = tests.AddTest("success", args{
+	_ = tests.Add("success", args{
 		elems:     nums,
 		predicate: func(x int) bool { return x%2 == 0 },
 		expected:  expected_evens,
 	})
 
-	_ = tests.AddTest("no filter", args{
+	_ = tests.Add("no filter", args{
 		elems:     nums,
 		predicate: nil,
 		expected:  nil,
@@ -80,8 +80,8 @@ func TestApplyReject(t *testing.T) {
 		expected  []int
 	}
 
-	tests := test.NewTests(func(args args) test.TestingFunc {
-		return func(t *testing.T) {
+	tests := test.NewTestSet(func(args args) test.TestingFn {
+		return func() error {
 			_ = Reject(&args.elems, args.predicate)
 
 			ok := slices.Equal(args.elems, args.expected)
@@ -93,13 +93,13 @@ func TestApplyReject(t *testing.T) {
 		}
 	})
 
-	_ = tests.AddTest("success", args{
+	_ = tests.Add("success", args{
 		elems:     nums,
 		predicate: func(x int) bool { return x%2 == 0 },
 		expected:  expected_odds,
 	})
 
-	_ = tests.AddTest("no filter", args{
+	_ = tests.Add("no filter", args{
 		elems:     nums,
 		predicate: nil,
 		expected:  nil,
@@ -118,8 +118,8 @@ func TestRejectNils(t *testing.T) {
 		expected []*MockStruct
 	}
 
-	tests := test.NewTests(func(args args) test.TestingFunc {
-		return func(t *testing.T) {
+	tests := test.NewTestSet(func(args args) test.TestingFn {
+		return func() error {
 			_ = RejectNils(&args.tokens)
 
 			ok := slices.Equal(args.tokens, args.expected)
@@ -131,22 +131,22 @@ func TestRejectNils(t *testing.T) {
 		}
 	})
 
-	_ = tests.AddTest("no elems", args{
+	_ = tests.Add("no elems", args{
 		tokens:   []*MockStruct{},
 		expected: []*MockStruct{},
 	})
 
-	_ = tests.AddTest("one elem", args{
+	_ = tests.Add("one elem", args{
 		tokens:   []*MockStruct{{}},
 		expected: []*MockStruct{{}},
 	})
 
-	_ = tests.AddTest("two elems", args{
+	_ = tests.Add("two elems", args{
 		tokens:   []*MockStruct{nil, {}},
 		expected: []*MockStruct{{}},
 	})
 
-	_ = tests.AddTest("all nil", args{
+	_ = tests.Add("all nil", args{
 		tokens:   []*MockStruct{nil, nil},
 		expected: nil,
 	})
@@ -164,8 +164,8 @@ func TestSplit(t *testing.T) {
 		fail      []int
 	}
 
-	tests := test.NewTests(func(args args) test.TestingFunc {
-		return func(t *testing.T) {
+	tests := test.NewTestSet(func(args args) test.TestingFn {
+		return func() error {
 			bound := Split(args.elems, args.predicate)
 			if bound != args.expected {
 				vc.FAIL.WrongInt(t, int(args.expected), int(bound))
@@ -186,7 +186,7 @@ func TestSplit(t *testing.T) {
 		}
 	})
 
-	_ = tests.AddTest("success", args{
+	_ = tests.Add("success", args{
 		elems:     []int{1, 2, 3, 4, 5},
 		predicate: func(x int) bool { return x%2 == 0 },
 		expected:  2,

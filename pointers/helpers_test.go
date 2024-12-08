@@ -3,7 +3,6 @@ package pointers
 import (
 	"testing"
 
-	vc "github.com/PlayerR9/go-verify/common"
 	"github.com/PlayerR9/go-verify/test"
 )
 
@@ -17,7 +16,8 @@ func TestSet(t *testing.T) {
 		return
 	}
 
-	vc.FAIL.WrongInt(t, 5, x)
+	err := test.FAIL.Int(5, x)
+	t.Fatal(err)
 }
 
 // TestGet tests the Get function.
@@ -29,8 +29,8 @@ func TestGet(t *testing.T) {
 		want       int
 	}
 
-	tests := test.NewTests[args](func(args args) test.TestingFunc {
-		return func(t *testing.T) {
+	tests := test.NewTestSet[args](func(args args) test.TestingFn {
+		return func() error {
 			var v int
 
 			if args.is_pointer {
@@ -40,20 +40,20 @@ func TestGet(t *testing.T) {
 			}
 
 			if v == args.want {
-				return
+				return nil
 			}
 
-			vc.FAIL.WrongInt(t, args.want, v)
+			return test.FAIL.Int(args.want, v)
 		}
 	})
 
-	_ = tests.AddTest("nil pointer", args{
+	_ = tests.Add("nil pointer", args{
 		px:         nil,
 		is_pointer: true,
 		want:       0,
 	})
 
-	_ = tests.AddTest("non-nil pointer", args{
+	_ = tests.Add("non-nil pointer", args{
 		x:          15,
 		is_pointer: false,
 		want:       15,
