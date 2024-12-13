@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/PlayerR9/mygo-lib/common"
-	gslc "github.com/PlayerR9/mygo-lib/slices"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
+	gslc "github.com/PlayerR9/mygo-lib/OLD/slices"
 )
 
 // Exists returns whether the file at path exists and an error if any.

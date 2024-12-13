@@ -5,7 +5,7 @@ import (
 	"iter"
 	"log"
 
-	common "github.com/PlayerR9/mygo-lib/common"
+	common "github.com/PlayerR9/mygo-lib/OLD/common"
 )
 
 // LogSeq prints a title and a sequence of strings. Each element of the sequence is

@@ -3,7 +3,7 @@ package bytes
 import (
 	"unicode/utf8"
 
-	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
 )
 
 // Encode appends the UTF-8 encoding of a slice of runes to the provided byte slice.

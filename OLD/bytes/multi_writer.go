@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
 )
 
 // MultiWriter is a writer that writes multiple data to the underlying io.Writer. Useful

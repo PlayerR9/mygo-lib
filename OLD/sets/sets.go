@@ -4,7 +4,7 @@ import (
 	"iter"
 	"slices"
 
-	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
 )
 
 // Set is an interface used by any set-like data structure.

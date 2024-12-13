@@ -5,7 +5,7 @@ import (
 	"iter"
 	"slices"
 
-	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
 )
 
 // OrderedSet is an ordered set in ascending order. An empty ordered set can

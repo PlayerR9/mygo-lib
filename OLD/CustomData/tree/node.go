@@ -1,8 +1,8 @@
 package tree
 
 import (
-	"github.com/PlayerR9/mygo-lib/common"
-	"github.com/PlayerR9/mygo-lib/slices"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
+	"github.com/PlayerR9/mygo-lib/OLD/slices"
 )
 
 // Node is the node in the tree.

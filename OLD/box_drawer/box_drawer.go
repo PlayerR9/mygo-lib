@@ -5,9 +5,9 @@ import (
 	"io"
 	"unicode/utf8"
 
-	gby "github.com/PlayerR9/mygo-lib/bytes"
-	"github.com/PlayerR9/mygo-lib/common"
-	gch "github.com/PlayerR9/mygo-lib/runes"
+	gby "github.com/PlayerR9/mygo-lib/OLD/bytes"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
+	gch "github.com/PlayerR9/mygo-lib/OLD/runes"
 )
 
 var (

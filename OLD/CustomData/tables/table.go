@@ -1,8 +1,8 @@
 package tables
 
 import (
-	"github.com/PlayerR9/mygo-lib/common"
-	"github.com/PlayerR9/mygo-lib/mem"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
+	"github.com/PlayerR9/mygo-lib/OLD/mem"
 )
 
 // Table is a boundless table, meaning that the table can be thought of

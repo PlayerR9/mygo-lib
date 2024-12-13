@@ -3,7 +3,7 @@ package misc
 import (
 	"slices"
 
-	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/OLD/common"
 )
 
 // Embeds calls the `Embeds()` method on the given element and returns the result.
