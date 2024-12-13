@@ -1,7 +1,5 @@
 package optional
 
-import flt "github.com/PlayerR9/mygo-lib/go-fault"
-
 // someOptional is an Optional that has a value.
 type someOptional struct {
 	// value is the value of the Optional.
@@ -18,7 +16,7 @@ func (so someOptional) IsPresent() bool {
 // Get implements Optional.
 //
 // Never returns an error.
-func (so someOptional) Get() (any, flt.Fault) {
+func (so someOptional) Get() (any, error) {
 	return so.value, nil
 }
 

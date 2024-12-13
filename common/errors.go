@@ -1,44 +1,56 @@
 package common
 
 import (
-	flt "github.com/PlayerR9/mygo-lib/go-fault"
+	"errors"
 )
 
 var (
-	// bltErrBadParam is the blueprint for a bad parameter error.
-	bltErrBadParam flt.Blueprint
-
-	// bltErrOperationFailed is the blueprint for an operation failed error.
-	bltErrOperationFailed flt.Blueprint
+	// ErrNilReceiver occurs when a method is called on a receiver who is
+	// expected to be non-nil. This error can be checked with the == operator.
+	//
+	// Format:
+	// 	"receiver must not be nil"
+	ErrNilReceiver error
 )
 
 func init() {
-	bltErrBadParam = flt.New("Bad Parameter")
-	bltErrOperationFailed = flt.New("Operation Failed")
+	ErrNilReceiver = errors.New("receiver must not be nil")
 }
 
-// ErrNilReceiver returns a fault that occurs when a method is called on a receiver that was expected
-// to be non-nil.
-//
-// Returns:
-//   - flt.Fault: An instance of a fault indicating that the receiver must not be nil. Never returns nil.
-//
-// Format:
-//
-//	"receiver must not be nil"
-func ErrNilReceiver() flt.Fault {
-	fault := bltErrOperationFailed.Init("receiver must not be nil")
-	return fault
+// ErrBadParam occurs when a parameter is bad. (i.e., not a valid value).
+type ErrBadParam struct {
+	// ParamName is the name of the parameter causing the error.
+	ParamName string
+
+	// Msg is the reason the parameter is bad.
+	Msg string
 }
 
-// ErrBadParam returns an error that occurs when a parameter is bad. (i.e., not a valid value).
+// Error implements error.
+func (e ErrBadParam) Error() string {
+	var msg string
+
+	if e.Msg == "" {
+		msg = "is not valid"
+	} else {
+		msg = e.Msg
+	}
+
+	if e.ParamName == "" {
+		return "parameter " + msg
+	} else {
+		return "parameter (" + e.ParamName + ") " + msg
+	}
+}
+
+// NewErrBadParam creates a new ErrBadParam error with the specified parameter name and message.
 //
 // Parameters:
 //   - param_name: The name of the parameter causing the error.
-//   - msg: The error message describing why the parameter is bad. If empty, "is not valid" is used.
+//   - msg: The error message describing why the parameter is bad.
 //
 // Returns:
-//   - error: An instance of a bad parameter error. Never returns nil.
+//   - error: An instance of ErrBadParam. Never returns nil.
 //
 // Format:
 //
@@ -47,29 +59,21 @@ func ErrNilReceiver() flt.Fault {
 // where:
 //   - (<param_name>): The name of the parameter. If empty, it is omitted.
 //   - <msg>: The error message describing why the parameter is bad. If empty, "is not valid" is used.
-func ErrBadParam(param_name, msg string) flt.Fault {
-	if msg == "" {
-		msg = "is not valid"
+func NewErrBadParam(param_name, msg string) error {
+	return &ErrBadParam{
+		ParamName: param_name,
+		Msg:       msg,
 	}
-
-	var fault flt.Fault
-
-	if param_name == "" {
-		fault = bltErrBadParam.Init("parameter " + msg)
-	} else {
-		fault = bltErrBadParam.Init("parameter (" + param_name + ") " + msg)
-	}
-
-	return fault
 }
 
-// ErrBadParam returns an error that occurs when a parameter is bad. (i.e., not a valid value).
+// NewErrNilParam is a convenience function that creates a new ErrBadParam error with the specified
+// parameter name and the message "must not be nil".
 //
 // Parameters:
 //   - param_name: The name of the parameter causing the error.
 //
 // Returns:
-//   - error: An instance of a bad parameter error. Never returns nil.
+//   - error: An instance of ErrBadParam. Never returns nil.
 //
 // Format:
 //
@@ -77,14 +81,9 @@ func ErrBadParam(param_name, msg string) flt.Fault {
 //
 // where:
 //   - (<param_name>): The name of the parameter. If empty, it is omitted.
-func ErrNilParam(param_name string) flt.Fault {
-	var fault flt.Fault
-
-	if param_name == "" {
-		fault = bltErrBadParam.Init("parameter must not be nil")
-	} else {
-		fault = bltErrBadParam.Init("parameter (" + param_name + ") must not be nil")
+func NewErrNilParam(param_name string) error {
+	return &ErrBadParam{
+		ParamName: param_name,
+		Msg:       "must not be nil",
 	}
-
-	return fault
 }

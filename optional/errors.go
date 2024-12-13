@@ -1,23 +1,16 @@
 package optional
 
-import (
-	flt "github.com/PlayerR9/mygo-lib/go-fault"
-)
+import "errors"
 
 var (
-	// bltErrMissingValue is the blueprint for ErrMissingValue.
-	bltErrMissingValue flt.Blueprint
+	// ErrMissingValue is an error that occurs when an optional value is missing.
+	//
+	// Format:
+	//
+	//	"missing value"
+	ErrMissingValue error
 )
 
 func init() {
-	bltErrMissingValue = flt.New("")
-}
-
-// ErrMissingValue returns an error that occurs when an optional value is missing.
-//
-// Format:
-//
-//	"missing value"
-func ErrMissingValue() flt.Fault {
-	return bltErrMissingValue.Init("missing value")
+	ErrMissingValue = errors.New("missing value")
 }

@@ -1,8 +1,6 @@
 package optional
 
-import (
-	flt "github.com/PlayerR9/mygo-lib/go-fault"
-)
+import "github.com/PlayerR9/mygo-lib/common"
 
 // Optional is an interface that represents an optional value.
 type Optional interface {
@@ -17,11 +15,11 @@ type Optional interface {
 	//
 	// Returns:
 	//   - any: The value of the Optional if present.
-	//   - fault.Fault: An error if the Optional has no value.
+	//   - error: An error if the Optional has no value.
 	//
 	// Errors:
 	//   - ErrMissingValue: If the Optional has no value.
-	Get() (any, flt.Fault)
+	Get() (any, error)
 }
 
 // MustGet calls o.Get() and panics if o is nil or if the call to o.Get() returns an error.
@@ -35,12 +33,12 @@ type Optional interface {
 //   - E: The value returned by o.Get() if the call to o.Get() succeeds.
 func MustGet[E any](o Optional) E {
 	if o == nil {
-		panic("parameter (o) must not be nil")
+		panic(common.NewErrNilParam("o"))
 	}
 
 	v, err := o.Get()
 	if err != nil {
-		panic(err)
+		panic(ErrMissingValue)
 	}
 
 	e, ok := v.(E)

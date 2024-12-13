@@ -1,7 +1,5 @@
 package optional
 
-import flt "github.com/PlayerR9/mygo-lib/go-fault"
-
 // noneOptional is an Optional that has no value.
 type noneOptional struct{}
 
@@ -15,8 +13,8 @@ func (no noneOptional) IsPresent() bool {
 // Get implements Optional.
 //
 // Always returns an error.
-func (no noneOptional) Get() (any, flt.Fault) {
-	return nil, ErrMissingValue()
+func (no noneOptional) Get() (any, error) {
+	return nil, ErrMissingValue
 }
 
 // None creates an Optional with no value.
