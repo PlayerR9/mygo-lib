@@ -1,4 +1,4 @@
-package fault
+package faults
 
 // Blueprint is a blueprint for a Fault.
 type Blueprint interface {

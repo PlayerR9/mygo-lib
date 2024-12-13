@@ -1,4 +1,4 @@
-package fault
+package faults
 
 // baseFault is a base implementation of the Fault interface.
 type baseFault struct {

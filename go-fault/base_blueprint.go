@@ -1,4 +1,4 @@
-package fault
+package faults
 
 // baseBlueprint is a base implementation of the Blueprint interface.
 type baseBlueprint struct {

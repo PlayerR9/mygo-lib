@@ -1,25 +1,46 @@
 package in
 
 import (
-	"errors"
 	"io"
 	"unicode/utf8"
+
+	"github.com/PlayerR9/mygo-lib/common"
+	flt "github.com/PlayerR9/mygo-lib/go-fault"
 )
 
+// runeRead is a rune reader.
 type runeRead struct {
-	r      io.Reader
+	// r is the reader.
+	r io.Reader
+
+	// stream is the rune stream.
 	stream RuneStream
-	chars  []rune
+
+	// chars is the current chars.
+	chars []rune
 }
 
-func newRuneRead(r io.Reader) (*runeRead, error) {
+// privNewRuneRead initializes a new runeRead instance with the provided io.Reader.
+//
+// Parameters:
+//   - r: The io.Reader to read from.
+//
+// Returns:
+//   - *runeRead: A pointer to the newly created runeRead instance.
+//   - flt.Fault: A fault if the provided reader is nil.
+//
+// Errors:
+//   - common.ErrNilParam: If the input reader r is nil.
+func privNewRuneRead(r io.Reader) (*runeRead, flt.Fault) {
 	if r == nil {
-		return nil, errors.New("parameter (r) must not be nil")
+		return nil, common.ErrNilParam("r")
 	}
 
-	return &runeRead{
+	rr := &runeRead{
 		r: r,
-	}, nil
+	}
+
+	return rr, nil
 }
 
 func (r *runeRead) read() error {

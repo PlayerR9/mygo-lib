@@ -1,4 +1,4 @@
-package fault
+package faults
 
 // Fault is an interface that represents an error.
 type Fault interface {

@@ -1,6 +1,6 @@
 package optional
 
-import flt "github.com/PlayerR9/mygo-lib/fault"
+import flt "github.com/PlayerR9/mygo-lib/go-fault"
 
 // noneOptional is an Optional that has no value.
 type noneOptional struct{}

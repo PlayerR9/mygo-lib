@@ -4,11 +4,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/PlayerR9/mygo-lib/in/internal"
+	"github.com/PlayerR9/mygo-lib/optional"
+	gslc "github.com/PlayerR9/mygo-lib/slices"
 )
 
 func ScanLn() ([]rune, error) {
-	rr, err := newRuneRead(os.Stdin)
+	rr, err := privNewRuneRead(os.Stdin)
 	if err != nil {
 		panic(err)
 	}
@@ -23,14 +24,15 @@ func ScanLn() ([]rune, error) {
 			return nil, err
 		}
 
-		idx, ok := internal.FirstIndexOf(rr.chars, '\n')
-		if !ok {
+		result := gslc.FirstIndexOf(rr.chars, '\n')
+		if !result.IsPresent() {
 			input = append(input, rr.chars...)
 			rr.chars = nil
 
 			continue
 		}
 
+		idx := optional.MustGet[uint](result)
 		if idx != 0 {
 			input = append(input, rr.chars[:idx-1]...)
 		} else if len(input) > 0 && input[len(input)-1] == '\r' {

@@ -1,6 +1,6 @@
 package optional
 
-import flt "github.com/PlayerR9/mygo-lib/fault"
+import flt "github.com/PlayerR9/mygo-lib/go-fault"
 
 // someOptional is an Optional that has a value.
 type someOptional struct {

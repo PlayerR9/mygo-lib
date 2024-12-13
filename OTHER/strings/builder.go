@@ -3,7 +3,7 @@ package strings
 import (
 	"strings"
 
-	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/OTHER/common"
 )
 
 // Builder is a builder for strings.

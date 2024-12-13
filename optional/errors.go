@@ -1,7 +1,7 @@
 package optional
 
 import (
-	flt "github.com/PlayerR9/mygo-lib/fault"
+	flt "github.com/PlayerR9/mygo-lib/go-fault"
 )
 
 var (

@@ -1,9 +1,10 @@
 package in
 
 import (
-	"errors"
 	"fmt"
 	"unicode/utf8"
+
+	"github.com/PlayerR9/mygo-lib/common"
 )
 
 type RuneStream struct {
@@ -12,7 +13,7 @@ type RuneStream struct {
 
 func (rs *RuneStream) Write(data []byte) (int, error) {
 	if rs == nil {
-		return 0, errors.New("receiver must not be nil")
+		return 0, common.ErrNilReceiver()
 	}
 
 	rs.data = append(rs.data, data...)
@@ -22,7 +23,7 @@ func (rs *RuneStream) Write(data []byte) (int, error) {
 
 func (rs *RuneStream) Next() (rune, error) {
 	if rs == nil {
-		return 0, errors.New("receiver must not be nil")
+		return 0, common.ErrNilReceiver()
 	}
 
 	c, size := utf8.DecodeRune(rs.data)
