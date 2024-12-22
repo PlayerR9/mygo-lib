@@ -1,6 +1,10 @@
-package common
+package errors
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/PlayerR9/mygo-lib/common"
+)
 
 // Throw panics with the given error, if it is not nil.
 //
@@ -73,7 +77,7 @@ func makeCatchFn(caught *error) func() {
 // the panic value and assigned to the `caught` address.
 func Try(panic_fn func()) error {
 	if panic_fn == nil {
-		err := NewErrNilParam("panic_fn")
+		err := common.NewErrNilParam("panic_fn")
 		return err
 	}
 
