@@ -8,7 +8,7 @@ import "github.com/PlayerR9/mygo-lib/common"
 //   - e: The element to check.
 //
 // Returns:
-//   - bool: True if the element is valid.
+//   - bool: True if the element is valid, false otherwise.
 type Predicate[E any] func(e E) bool
 
 // Filter filters a slice of E's according to a predicate.
