@@ -1,6 +1,6 @@
 package runes
 
-import "errors"
+import "github.com/PlayerR9/mygo-lib/common"
 
 var (
 	// ErrInvalidUtf8 occurs when a certain byte sequence is not valid utf-8. This
@@ -12,5 +12,5 @@ var (
 )
 
 func init() {
-	ErrInvalidUtf8 = errors.New("invalid utf-8")
+	ErrInvalidUtf8 = common.New("invalid utf-8")
 }

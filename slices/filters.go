@@ -95,37 +95,74 @@ func Reject[S ~[]E, E any](s *S, predicate Predicate[E]) error {
 	return nil
 }
 
-// RejectNils removes all nil values from a slice of pointers.
+// RejectNils rejects in-place all nil elements from a slice of E's and returns the number
+// of elements rejected.
 //
 // Parameters:
-//   - s: The slice of pointers to E to filter.
+//   - s: The slice of E's to filter.
 //
 // Returns:
-//   - S: The filtered slice of pointers to E.
-func RejectNils[S ~[]*E, E any](s S) S {
-	if len(s) == 0 {
-		return *new(S)
+//   - uint: The number of elements rejected.
+func RejectNils[S ~[]*E, E any](s *S) uint {
+	if s == nil || len(*s) == 0 {
+		return 0
 	}
 
-	count := 0
+	var end uint
 
-	for _, v := range s {
+	for _, v := range *s {
 		if v != nil {
-			count++
+			(*s)[end] = v
+			end++
 		}
 	}
 
-	if count == 0 {
-		return *new(S)
+	n := uint(len(*s)) - end
+
+	if end == 0 {
+		clear(*s)
+		*s = nil
+	} else {
+		clear((*s)[end:])
+		*s = (*s)[:end]
 	}
 
-	result := make(S, 0, count)
+	return n
+}
 
-	for _, v := range s {
-		if v != nil {
-			result = append(result, v)
+// RejectEmpty rejects in-place all zero-valued elements from a slice of E's and returns the number
+// of elements rejected.
+//
+// Parameters:
+//   - s: The slice of E's to filter.
+//
+// Returns:
+//   - uint: The number of elements rejected.
+func RejectEmpty[S ~[]E, E comparable](s *S) uint {
+	if s == nil || len(*s) == 0 {
+		return 0
+	}
+
+	zero := *new(E)
+
+	var end uint
+
+	for _, e := range *s {
+		if e != zero {
+			(*s)[end] = e
+			end++
 		}
 	}
 
-	return result
+	n := uint(len(*s)) - end
+
+	if end == 0 {
+		clear(*s)
+		*s = nil
+	} else {
+		clear((*s)[end:])
+		*s = (*s)[:end]
+	}
+
+	return n
 }
