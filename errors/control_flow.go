@@ -1,10 +1,6 @@
 package errors
 
-import (
-	"errors"
-
-	"github.com/PlayerR9/mygo-lib/common"
-)
+import "github.com/PlayerR9/mygo-lib/common"
 
 // Throw panics with the given error, if it is not nil.
 //
@@ -45,7 +41,7 @@ func makeCatchFn(caught *error) func() {
 
 		switch r := r.(type) {
 		case string:
-			err = errors.New(r)
+			err = common.New(r)
 		case error:
 			err = r
 		default:
@@ -62,13 +58,12 @@ func makeCatchFn(caught *error) func() {
 // panics. If the function does not panic, the function returns nil.
 //
 // Parameters:
-//   - panic_fn: A function that may panic. Must not be nil.
+//   - panic_fn: A function that may panic.
 //
 // Returns:
 //   - error: An error if the function panics, otherwise nil.
 //
 // Errors:
-//   - ErrBadParam: If the `panic_fn` parameter is nil.
 //   - any error that occurs if the function panics.
 //
 // If the panic value is a string, an error is created with that string. If the
@@ -77,8 +72,7 @@ func makeCatchFn(caught *error) func() {
 // the panic value and assigned to the `caught` address.
 func Try(panic_fn func()) error {
 	if panic_fn == nil {
-		err := common.NewErrNilParam("panic_fn")
-		return err
+		return nil
 	}
 
 	var caught error

@@ -9,22 +9,19 @@ import (
 
 // TestThrowTry tests Throw and Try.
 func TestThrowTry(t *testing.T) {
+	ErrFoo := common.New("foo")
+
 	panic_fn := func() {
-		Throw(common.DefaultError)
+		panic(ErrFoo)
 	}
 
 	err := Try(panic_fn)
-	if err == common.DefaultError {
+	if err == ErrFoo {
 		return
 	}
 
-	var want string
-
-	if common.DefaultError == nil {
-		want = "something"
-	} else {
-		want = common.DefaultError.Error()
-	}
+	want := ErrFoo.Error()
+	want = strconv.Quote(want)
 
 	var got string
 
