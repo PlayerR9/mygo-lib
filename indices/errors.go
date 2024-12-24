@@ -1,7 +1,7 @@
 package indices
 
 import (
-	gers "github.com/PlayerR9/mygo-lib/errors"
+	"github.com/PlayerR9/mygo-lib/errors"
 )
 
 var (
@@ -13,5 +13,5 @@ var (
 )
 
 func init() {
-	ErrMissingValue = gers.New("value is not present")
+	ErrMissingValue = errors.New("value is not present")
 }

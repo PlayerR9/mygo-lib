@@ -1,6 +1,6 @@
 package slices
 
-import gers "github.com/PlayerR9/mygo-lib/errors"
+import "github.com/PlayerR9/mygo-lib/errors"
 
 // Builder is a builder for slices. It is only efficent for making many slices one after the other.
 //
@@ -9,22 +9,6 @@ import gers "github.com/PlayerR9/mygo-lib/errors"
 type Builder[E any] struct {
 	// slice is the underlying slice being built.
 	slice []E
-}
-
-// Reset implements common.Resetter.
-func (b *Builder[E]) Reset() error {
-	if b == nil {
-		return gers.ErrNilReceiver
-	}
-
-	if len(b.slice) == 0 {
-		return nil
-	}
-
-	clear(b.slice)
-	b.slice = nil
-
-	return nil
 }
 
 // Append appends an element to the slice being built.
@@ -39,7 +23,7 @@ func (b *Builder[E]) Reset() error {
 //   - common.ErrNilReceiver: If the receiver is nil.
 func (b *Builder[E]) Append(elem E) error {
 	if b == nil {
-		return gers.ErrNilReceiver
+		return errors.ErrNilReceiver
 	}
 
 	b.slice = append(b.slice, elem)
@@ -60,4 +44,28 @@ func (b Builder[E]) Build() []E {
 	copy(slice, b.slice)
 
 	return slice
+}
+
+// Reset resets the builder to its initial state, freeing up any allocated memory
+// so that it can be reused to build another slice. This is more efficient than
+// creating a new builder if you need to build many slices in a row.
+//
+// Returns:
+//   - error: An error if the builder is nil.
+//
+// Errors:
+//   - errors.ErrNilReceiver: If the receiver is nil.
+func (b *Builder[E]) Reset() error {
+	if b == nil {
+		return errors.ErrNilReceiver
+	}
+
+	if len(b.slice) == 0 {
+		return nil
+	}
+
+	clear(b.slice)
+	b.slice = nil
+
+	return nil
 }

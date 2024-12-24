@@ -15,6 +15,8 @@ func ExtractFirstNFields(s *string, n uint) []string {
 		return nil
 	}
 
+	// TODO: Modify here such that this function does not depend on
+	// "strings.Split" method of the "strings" package.
 	fields := strings.Split(*s, " ")
 
 	var min int
