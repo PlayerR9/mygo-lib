@@ -1,10 +1,12 @@
 package indices
 
-// Index is a struct that holds an optional index.
-type Index struct {
-	// idx is the index.
-	idx *uint
-}
+const (
+	// MaxUint is the maximum value of a uint.
+	MaxUint uint = ^uint(0)
+)
+
+// Index is a type alias for uint. MaxUint is used to represent an empty index.
+type Index uint
 
 // Some creates an Index with the given value.
 //
@@ -14,9 +16,7 @@ type Index struct {
 // Returns:
 //   - Index: The newly created Index.
 func Some(idx uint) Index {
-	opt := Index{
-		idx: &idx,
-	}
+	opt := Index(idx)
 
 	return opt
 }
@@ -26,8 +26,33 @@ func Some(idx uint) Index {
 // Returns:
 //   - Index: The newly created empty Index.
 func None() Index {
-	opt := Index{}
+	opt := Index(MaxUint)
 	return opt
+}
+
+// IsPresent checks if the index is not empty.
+//
+// Returns:
+//   - bool: True if the index is not empty, false otherwise.
+func (idx Index) IsPresent() bool {
+	return uint(idx) != MaxUint
+}
+
+// Get retrieves the underlying uint value of the Index if it is present.
+//
+// Returns:
+//   - uint: The underlying value of the Index.
+//   - error: An error if the Index is empty.
+//
+// Errors:
+//   - ErrMissingValue: If the Index is empty.
+func (idx Index) Get() (uint, error) {
+	underlying := uint(idx)
+	if underlying == MaxUint {
+		return 0, ErrMissingValue
+	}
+
+	return underlying, nil
 }
 
 // OrElse returns the value of the index if it is not empty, otherwise it returns the fallback value.
@@ -38,9 +63,11 @@ func None() Index {
 // Returns:
 //   - uint: The value of the index if not empty, otherwise fallback.
 func (idx Index) OrElse(fallback uint) uint {
-	if idx.idx == nil {
-		return fallback
-	} else {
-		return *idx.idx
+	underlying := uint(idx)
+
+	if underlying != MaxUint {
+		fallback = underlying
 	}
+
+	return fallback
 }
