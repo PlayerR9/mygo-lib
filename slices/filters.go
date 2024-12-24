@@ -1,6 +1,6 @@
 package slices
 
-import "github.com/PlayerR9/mygo-lib/common"
+import gers "github.com/PlayerR9/mygo-lib/errors"
 
 // Predicate is a function that returns true if the element is valid.
 //
@@ -24,7 +24,7 @@ type Predicate[E any] func(e E) bool
 //   - common.ErrBadParam: If the receiver is nil.
 func Filter[S ~[]E, E any](s *S, predicate Predicate[E]) error {
 	if predicate == nil {
-		err := common.NewErrNilParam("predicate")
+		err := gers.NewErrNilParam("predicate")
 		return err
 	}
 
@@ -66,7 +66,7 @@ func Filter[S ~[]E, E any](s *S, predicate Predicate[E]) error {
 //   - common.ErrBadParam: If the receiver is nil.
 func Reject[S ~[]E, E any](s *S, predicate Predicate[E]) error {
 	if predicate == nil {
-		err := common.NewErrNilParam("predicate")
+		err := gers.NewErrNilParam("predicate")
 		return err
 	}
 

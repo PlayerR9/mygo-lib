@@ -1,6 +1,6 @@
 package slices
 
-import "github.com/PlayerR9/mygo-lib/common"
+import gers "github.com/PlayerR9/mygo-lib/errors"
 
 // Builder is a builder for slices. It is only efficent for making many slices one after the other.
 //
@@ -14,7 +14,7 @@ type Builder[E any] struct {
 // Reset implements common.Resetter.
 func (b *Builder[E]) Reset() error {
 	if b == nil {
-		return common.ErrNilReceiver
+		return gers.ErrNilReceiver
 	}
 
 	if len(b.slice) == 0 {
@@ -39,7 +39,7 @@ func (b *Builder[E]) Reset() error {
 //   - common.ErrNilReceiver: If the receiver is nil.
 func (b *Builder[E]) Append(elem E) error {
 	if b == nil {
-		return common.ErrNilReceiver
+		return gers.ErrNilReceiver
 	}
 
 	b.slice = append(b.slice, elem)

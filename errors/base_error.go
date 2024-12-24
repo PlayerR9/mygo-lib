@@ -1,4 +1,4 @@
-package common
+package errors
 
 // THIS IS DONE TO AVOID DEPENDENCY TO 'errors' PACKAGE.
 

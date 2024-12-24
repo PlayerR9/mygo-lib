@@ -1,4 +1,4 @@
-package common
+package errors
 
 var (
 	// ErrNilReceiver occurs when a method is called on a receiver that was not

@@ -1,5 +1,10 @@
 package errors
 
+const (
+	// DefaultErrorMessage is the default error message.
+	DefaultErrorMessage string = "something went wrong"
+)
+
 // RejectNilErrors removes all nil errors from the given slice.
 //
 // It iterates over the provided slice, counting the number of non-nil errors.
