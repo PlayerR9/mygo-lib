@@ -1,6 +1,9 @@
 package errors
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // formattedError is an error with a formatted message.
 type formattedError struct {
@@ -20,8 +23,10 @@ func (fe formattedError) Error() string {
 // Errorf returns an error with a formatted message.
 //
 // Returns:
-// 	- error: The new error instance. Never returns nil.
+//   - error: The new error instance. Never returns nil.
 func Errorf(format string, args ...any) error {
+	format = strings.ReplaceAll(format, "%w", "%s")
+
 	fe := &formattedError{
 		format: format,
 		args:   args,
@@ -33,7 +38,7 @@ func Errorf(format string, args ...any) error {
 // Unwrap returns the inner errors.
 //
 // Returns:
-// 	- []error: The inner errors.
+//   - []error: The inner errors.
 func (fs formattedError) Unwrap() []error {
 	var errs []error
 
