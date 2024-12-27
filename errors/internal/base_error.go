@@ -1,4 +1,4 @@
-package errors
+package internal
 
 // THIS IS DONE TO AVOID DEPENDENCY TO 'errors' PACKAGE.
 
@@ -13,19 +13,14 @@ func (be baseError) Error() string {
 	return be.msg
 }
 
-// New returns a new error with the given message. If the message is empty, it
-// defaults to DefaultErrorMessage.
+// NewBaseError returns a new error with the given message.
 //
 // Parameters:
 //   - msg: The error message.
 //
 // Returns:
 //   - error: The new error. Never returns nil.
-func New(msg string) error {
-	if msg == "" {
-		msg = DefaultErrorMessage
-	}
-
+func NewBaseError(msg string) error {
 	be := &baseError{
 		msg: msg,
 	}

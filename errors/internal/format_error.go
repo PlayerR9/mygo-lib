@@ -1,12 +1,11 @@
-package errors
+package internal
 
 import (
 	"fmt"
-	"strings"
 )
 
-// formattedError is an error with a formatted message.
-type formattedError struct {
+// formatError is an error with a formatted message.
+type formatError struct {
 	// format is the format string.
 	format string
 
@@ -15,19 +14,17 @@ type formattedError struct {
 }
 
 // Error implements the error interface.
-func (fe formattedError) Error() string {
+func (fe formatError) Error() string {
 	msg := fmt.Sprintf(fe.format, fe.args...)
 	return msg
 }
 
-// Errorf returns an error with a formatted message.
+// NewFormatError returns an error with a formatted message.
 //
 // Returns:
 //   - error: The new error instance. Never returns nil.
-func Errorf(format string, args ...any) error {
-	format = strings.ReplaceAll(format, "%w", "%s")
-
-	fe := &formattedError{
+func NewFormatError(format string, args []any) error {
+	fe := &formatError{
 		format: format,
 		args:   args,
 	}
@@ -39,7 +36,7 @@ func Errorf(format string, args ...any) error {
 //
 // Returns:
 //   - []error: The inner errors.
-func (fs formattedError) Unwrap() []error {
+func (fs formatError) Unwrap() []error {
 	var errs []error
 
 	for _, arg := range fs.args {
