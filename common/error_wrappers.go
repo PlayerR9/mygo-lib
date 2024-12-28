@@ -1,4 +1,4 @@
-package errors
+package common
 
 // ErrWhile is an error that occurs while doing something.
 type ErrWhile struct {

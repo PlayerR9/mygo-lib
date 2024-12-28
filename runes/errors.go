@@ -1,6 +1,6 @@
 package runes
 
-import "github.com/PlayerR9/mygo-lib/errors"
+import "errors"
 
 var (
 	// ErrInvalidUtf8 occurs when a certain byte sequence is not valid utf-8. This

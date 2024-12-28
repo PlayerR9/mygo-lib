@@ -1,8 +1,6 @@
 package indices
 
-import (
-	"github.com/PlayerR9/mygo-lib/errors"
-)
+import "errors"
 
 var (
 	// ErrMissingValue occurs when a value is not present.
