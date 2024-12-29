@@ -4,6 +4,7 @@ import (
 	"io"
 
 	common "github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/writer/internal"
 )
 
 // WriteBytes writes the given byte slice to the provided writer.
@@ -26,11 +27,7 @@ func WriteBytes(w io.Writer, data []byte) error {
 		return nil
 	}
 
-	n, err := w.Write(data)
-	if err == nil && n != len(data) {
-		err = io.ErrShortWrite
-	}
-
+	err := internal.WriteBytes(w, data)
 	return err
 }
 
@@ -56,10 +53,6 @@ func WriteString(w io.Writer, str string) error {
 
 	data := []byte(str)
 
-	n, err := w.Write(data)
-	if err == nil && n != len(data) {
-		err = io.ErrShortWrite
-	}
-
+	err := internal.WriteBytes(w, data)
 	return err
 }

@@ -1,6 +1,8 @@
 package runes
 
-import "unicode/utf8"
+import (
+	"github.com/PlayerR9/mygo-lib/runes/internal"
+)
 
 // BytesToUtf8 converts a byte slice into a slice of runes, and returns
 // an error if the byte slice contains invalid utf-8 data.
@@ -21,14 +23,9 @@ func BytesToUtf8(b []byte) ([]rune, error) {
 
 	var chars []rune
 
-	for len(b) > 0 {
-		r, s := utf8.DecodeRune(b)
-		if r == utf8.RuneError {
-			return nil, ErrInvalidUtf8
-		}
-
-		chars = append(chars, r)
-		b = b[s:]
+	n := internal.BytesToUtf8(b, &chars)
+	if n != uint(len(b)) {
+		return nil, ErrInvalidUtf8
 	}
 
 	return chars, nil
@@ -53,14 +50,9 @@ func StringToUtf8(str string) ([]rune, error) {
 
 	var chars []rune
 
-	for len(str) > 0 {
-		r, s := utf8.DecodeRuneInString(str)
-		if r == utf8.RuneError {
-			return nil, ErrInvalidUtf8
-		}
-
-		chars = append(chars, r)
-		str = str[s:]
+	n := internal.StringToUtf8(str, &chars)
+	if n != uint(len(str)) {
+		return nil, ErrInvalidUtf8
 	}
 
 	return chars, nil

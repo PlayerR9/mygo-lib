@@ -1,6 +1,9 @@
 package slices
 
-import "github.com/PlayerR9/mygo-lib/common"
+import (
+	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/slices/internal"
+)
 
 // Predicate is a function that returns true if the element is valid.
 //
@@ -18,39 +21,21 @@ type Predicate[E any] func(e E) bool
 //   - predicate: The predicate to use for filtering.
 //
 // Returns:
-//   - error: An error if the predicate is nil.
+//   - uint: The number of elements filtered-out.
 //
-// Errors:
-//   - common.ErrBadParam: If the receiver is nil.
-func Filter[S ~[]E, E any](s *S, predicate Predicate[E]) error {
+// Panics:
+//   - common.ErrBadParam: If the predicate is nil.
+func Filter[S ~[]E, E any](s *S, predicate Predicate[E]) uint {
 	if predicate == nil {
-		err := common.NewErrNilParam("predicate")
-		return err
+		panic(common.NewErrNilParam("predicate"))
 	}
 
 	if s == nil || len(*s) == 0 {
-		return nil
+		return 0
 	}
 
-	var end uint
-
-	for _, v := range *s {
-		ok := predicate(v)
-		if ok {
-			(*s)[end] = v
-			end++
-		}
-	}
-
-	if end == 0 {
-		clear(*s)
-		*s = nil
-	} else {
-		clear((*s)[end:])
-		*s = (*s)[:end]
-	}
-
-	return nil
+	n := internal.Filter(s, predicate)
+	return n
 }
 
 // Reject rejects a slice of E's according to a predicate.
@@ -60,39 +45,21 @@ func Filter[S ~[]E, E any](s *S, predicate Predicate[E]) error {
 //   - predicate: The predicate to use for rejecting.
 //
 // Returns:
-//   - error: An error if the predicate is nil.
+//   - uint: The number of elements rejected.
 //
-// Errors:
-//   - common.ErrBadParam: If the receiver is nil.
-func Reject[S ~[]E, E any](s *S, predicate Predicate[E]) error {
+// Panics:
+//   - common.ErrBadParam: If the predicate is nil.
+func Reject[S ~[]E, E any](s *S, predicate Predicate[E]) uint {
 	if predicate == nil {
-		err := common.NewErrNilParam("predicate")
-		return err
+		panic(common.NewErrNilParam("predicate"))
 	}
 
 	if s == nil || len(*s) == 0 {
-		return nil
+		return 0
 	}
 
-	var end uint
-
-	for _, v := range *s {
-		ok := predicate(v)
-		if !ok {
-			(*s)[end] = v
-			end++
-		}
-	}
-
-	if end == 0 {
-		clear(*s)
-		*s = nil
-	} else {
-		clear((*s)[end:])
-		*s = (*s)[:end]
-	}
-
-	return nil
+	n := internal.Reject(s, predicate)
+	return n
 }
 
 // RejectNils rejects in-place all nil elements from a slice of E's and returns the number
@@ -108,29 +75,11 @@ func RejectNils[S ~[]*E, E any](s *S) uint {
 		return 0
 	}
 
-	var end uint
-
-	for _, v := range *s {
-		if v != nil {
-			(*s)[end] = v
-			end++
-		}
-	}
-
-	n := uint(len(*s)) - end
-
-	if end == 0 {
-		clear(*s)
-		*s = nil
-	} else {
-		clear((*s)[end:])
-		*s = (*s)[:end]
-	}
-
+	n := internal.RejectNils(s)
 	return n
 }
 
-// RejectEmpty rejects in-place all zero-valued elements from a slice of E's and returns the number
+// RejectZero rejects in-place all zero-valued elements from a slice of E's and returns the number
 // of elements rejected.
 //
 // Parameters:
@@ -138,31 +87,11 @@ func RejectNils[S ~[]*E, E any](s *S) uint {
 //
 // Returns:
 //   - uint: The number of elements rejected.
-func RejectEmpty[S ~[]E, E comparable](s *S) uint {
+func RejectZero[S ~[]E, E comparable](s *S) uint {
 	if s == nil || len(*s) == 0 {
 		return 0
 	}
 
-	zero := *new(E)
-
-	var end uint
-
-	for _, e := range *s {
-		if e != zero {
-			(*s)[end] = e
-			end++
-		}
-	}
-
-	n := uint(len(*s)) - end
-
-	if end == 0 {
-		clear(*s)
-		*s = nil
-	} else {
-		clear((*s)[end:])
-		*s = (*s)[:end]
-	}
-
+	n := internal.RejectZero(s)
 	return n
 }

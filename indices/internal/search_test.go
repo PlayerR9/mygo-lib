@@ -1,4 +1,4 @@
-package indices
+package internal
 
 import "testing"
 
@@ -9,18 +9,13 @@ func TestFirstIndexOf(t *testing.T) {
 		elems = append(elems, i)
 	}
 
-	idx_opt := FirstIndexOf(elems, func(e int) bool {
+	idx, ok := FirstIndexOf(elems, func(e int) bool {
 		return e > 100
 	})
 
-	ok := idx_opt.IsPresent()
 	if !ok {
 		t.Errorf("expected index to be present")
-	}
-
-	idx := MustGet(idx_opt)
-
-	if idx != 101 {
+	} else if idx != 101 {
 		t.Errorf("expected index to be 101, got %d", idx)
 	}
 }
