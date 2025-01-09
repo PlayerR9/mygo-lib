@@ -57,3 +57,81 @@ func StringToUtf8(str string) ([]rune, error) {
 
 	return chars, nil
 }
+
+// Split divides a slice of runes into sub-slices based on a separator rune.
+//
+// Parameters:
+//   - chars: The slice of runes to be split.
+//   - sep: The rune used as the separator.
+//
+// Returns:
+//   - [][]rune: A slice of rune slices, where each sub-slice contains runes between separators.
+func Split(chars []rune, sep rune) [][]rune {
+	if len(chars) == 0 {
+		return nil
+	}
+
+	result := internal.Split(chars, sep)
+	return result
+}
+
+// TrimLeft trims whitespace from the left of a slice of runes.
+//
+// Parameters:
+//   - chars: The slice of runes to trim.
+//
+// Returns:
+//   - uint: The number of characters trimmed from the left.
+func TrimLeft(chars *[]rune, fn func(rune) bool) uint {
+	if fn == nil || chars == nil || len(*chars) == 0 {
+		return 0
+	}
+
+	n := internal.TrimLeft(chars, fn)
+	return n
+}
+
+// TrimRight trims whitespace from the right of a slice of runes.
+//
+// Parameters:
+//   - chars: The slice of runes to trim.
+//
+// Returns:
+//   - uint: The number of characters trimmed from the right.
+func TrimRight(chars *[]rune, fn func(rune) bool) uint {
+	if fn == nil || chars == nil || len(*chars) == 0 {
+		return 0
+	}
+
+	n := internal.TrimRight(chars, fn)
+	return n
+}
+
+// TrimSpace trims whitespace from the beginning and end of a slice of runes.
+//
+// Parameters:
+//   - chars: The slice of runes to trim.
+//
+// Returns:
+//   - uint: The number of characters trimmed from the beginning and end.
+func TrimSpace(chars *[]rune) uint {
+	if chars == nil || len(*chars) == 0 {
+		return 0
+	}
+
+	n := internal.TrimSpace(chars)
+	return n
+}
+
+// Equal checks if two slices of runes are equal.
+//
+// Parameters:
+//   - a: The first slice of runes.
+//   - b: The second slice of runes.
+//
+// Returns:
+//   - bool: True if the slices are equal, false otherwise.
+func Equal(a, b []rune) bool {
+	ok := internal.Equal(a, b)
+	return ok
+}

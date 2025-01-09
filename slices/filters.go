@@ -1,7 +1,7 @@
 package slices
 
 import (
-	"github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/errors"
 	"github.com/PlayerR9/mygo-lib/slices/internal"
 )
 
@@ -24,10 +24,10 @@ type Predicate[E any] func(e E) bool
 //   - uint: The number of elements filtered-out.
 //
 // Panics:
-//   - common.ErrBadParam: If the predicate is nil.
+//   - errors.ErrBadParam: If the predicate is nil.
 func Filter[S ~[]E, E any](s *S, predicate Predicate[E]) uint {
 	if predicate == nil {
-		panic(common.NewErrNilParam("predicate"))
+		panic(errors.NewErrNilParam("predicate"))
 	}
 
 	if s == nil || len(*s) == 0 {
@@ -48,10 +48,10 @@ func Filter[S ~[]E, E any](s *S, predicate Predicate[E]) uint {
 //   - uint: The number of elements rejected.
 //
 // Panics:
-//   - common.ErrBadParam: If the predicate is nil.
+//   - errors.ErrBadParam: If the predicate is nil.
 func Reject[S ~[]E, E any](s *S, predicate Predicate[E]) uint {
 	if predicate == nil {
-		panic(common.NewErrNilParam("predicate"))
+		panic(errors.NewErrNilParam("predicate"))
 	}
 
 	if s == nil || len(*s) == 0 {

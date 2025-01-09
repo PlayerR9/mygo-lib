@@ -3,7 +3,7 @@ package io
 import (
 	"io"
 
-	common "github.com/PlayerR9/mygo-lib/common"
+	"github.com/PlayerR9/mygo-lib/errors"
 	"github.com/PlayerR9/mygo-lib/writer/internal"
 )
 
@@ -17,12 +17,12 @@ import (
 //   - error: An error if the write operation fails.
 //
 // Errors:
-//   - common.NewErrNilParam: If the writer is nil.
+//   - errors.ErrBadParam: If the writer is nil.
 //   - io.ErrShortWrite: If the write operation writes fewer bytes than expected.
 //   - any other error: Implementation-specific error.
 func WriteBytes(w io.Writer, data []byte) error {
 	if w == nil {
-		return common.NewErrNilParam("w")
+		return errors.NewErrNilParam("w")
 	} else if len(data) == 0 {
 		return nil
 	}
@@ -41,12 +41,12 @@ func WriteBytes(w io.Writer, data []byte) error {
 //   - error: An error if the write operation fails.
 //
 // Errors:
-//   - common.NewErrNilParam: If the writer is nil.
+//   - errors.ErrBadParam: If the writer is nil.
 //   - io.ErrShortWrite: If the write operation writes fewer bytes than expected.
 //   - any other error: Implementation-specific error.
 func WriteString(w io.Writer, str string) error {
 	if w == nil {
-		return common.NewErrNilParam("w")
+		return errors.NewErrNilParam("w")
 	} else if str == "" {
 		return nil
 	}
