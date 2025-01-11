@@ -12,7 +12,8 @@ package internal
 //   - bool: True if an element satisfies the predicate, false otherwise.
 func FirstIndexOf[S ~[]E, E any](s S, predicate func(e E) bool) (uint, bool) {
 	for i, elem := range s {
-		if predicate(elem) {
+		ok := predicate(elem)
+		if ok {
 			return uint(i), true
 		}
 	}

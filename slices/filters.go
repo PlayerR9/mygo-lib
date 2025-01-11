@@ -1,18 +1,8 @@
 package slices
 
 import (
-	"github.com/PlayerR9/mygo-lib/errors"
 	"github.com/PlayerR9/mygo-lib/slices/internal"
 )
-
-// Predicate is a function that returns true if the element is valid.
-//
-// Parameters:
-//   - e: The element to check.
-//
-// Returns:
-//   - bool: True if the element is valid, false otherwise.
-type Predicate[E any] func(e E) bool
 
 // Filter filters a slice of E's according to a predicate.
 //
@@ -24,10 +14,10 @@ type Predicate[E any] func(e E) bool
 //   - uint: The number of elements filtered-out.
 //
 // Panics:
-//   - errors.ErrBadParam: If the predicate is nil.
-func Filter[S ~[]E, E any](s *S, predicate Predicate[E]) uint {
+//   - ErrNoPredicate: If the predicate is nil.
+func Filter[S ~[]E, E any](s *S, predicate func(e E) bool) uint {
 	if predicate == nil {
-		panic(errors.NewErrNilParam("predicate"))
+		panic(ErrNoPredicate)
 	}
 
 	if s == nil || len(*s) == 0 {
@@ -48,10 +38,10 @@ func Filter[S ~[]E, E any](s *S, predicate Predicate[E]) uint {
 //   - uint: The number of elements rejected.
 //
 // Panics:
-//   - errors.ErrBadParam: If the predicate is nil.
-func Reject[S ~[]E, E any](s *S, predicate Predicate[E]) uint {
+//   - ErrNoPredicate: If the predicate is nil.
+func Reject[S ~[]E, E any](s *S, predicate func(e E) bool) uint {
 	if predicate == nil {
-		panic(errors.NewErrNilParam("predicate"))
+		panic(ErrNoPredicate)
 	}
 
 	if s == nil || len(*s) == 0 {

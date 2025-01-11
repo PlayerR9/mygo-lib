@@ -12,10 +12,13 @@ func Filter[S ~[]E, E any](s *S, predicate func(e E) bool) uint {
 	var end uint
 
 	for _, v := range *s {
-		if predicate(v) {
-			(*s)[end] = v
-			end++
+		ok := predicate(v)
+		if !ok {
+			continue
 		}
+
+		(*s)[end] = v
+		end++
 	}
 
 	removed := uint(len(*s)) - end
@@ -43,10 +46,13 @@ func Reject[S ~[]E, E any](s *S, predicate func(e E) bool) uint {
 	var end uint
 
 	for _, v := range *s {
-		if !predicate(v) {
-			(*s)[end] = v
-			end++
+		ok := predicate(v)
+		if ok {
+			continue
 		}
+
+		(*s)[end] = v
+		end++
 	}
 
 	rejected := uint(len(*s)) - end
@@ -77,12 +83,15 @@ func RejectNils[S ~[]*E, E any](s *S) uint {
 	}
 
 	for i := uint(0); i < end; i++ {
-		if (*s)[i] == nil {
-			(*s)[i] = (*s)[end-1]
-			(*s)[end-1] = nil
-			end--
-			i-- // retry since we have overwritten the element
+		if (*s)[i] != nil {
+			continue
 		}
+
+		(*s)[i] = (*s)[end-1]
+		(*s)[end-1] = nil
+		end--
+
+		i-- // retry since we have overwritten the element
 	}
 
 	rejected := uint(len(*s)) - end
@@ -104,15 +113,15 @@ func RejectNils[S ~[]*E, E any](s *S) uint {
 func RejectZero[S ~[]E, E comparable](s *S) uint {
 	zero := *new(E)
 
-	var end, i uint
+	var end uint
 
-	for ; i < uint(len(*s)); i++ {
-		if (*s)[i] != zero {
-			if end != i {
-				(*s)[end] = (*s)[i]
-			}
-			end++
+	for _, v := range *s {
+		if v == zero {
+			continue
 		}
+
+		(*s)[end] = v
+		end++
 	}
 
 	rejected := uint(len(*s)) - end

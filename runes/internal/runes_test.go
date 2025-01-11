@@ -7,7 +7,9 @@ import (
 
 // TestSplit tests the Split function.
 func TestSplit(t *testing.T) {
-	result := Split([]rune("a,b,,c,d"), ',')
+	result := Split([]rune("a,b,,c,d"), func(r rune) bool {
+		return r == ','
+	})
 
 	expected := [][]rune{
 		[]rune("a"),

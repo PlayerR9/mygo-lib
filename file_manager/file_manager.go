@@ -21,10 +21,10 @@ func Exists(loc string) (bool, error) {
 
 	ok := errors.Is(err, os.ErrNotExist)
 	if ok {
-		return false, nil
-	} else {
-		return false, err
+		err = nil
 	}
+
+	return false, err
 }
 
 // CreateDirectory creates a directory at the given location with the given mode.

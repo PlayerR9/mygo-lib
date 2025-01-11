@@ -5,16 +5,19 @@ package internal
 // Parameters:
 //   - str: The input string to split into fields.
 //   - n: The maximum number of fields to extract.
+//   - isSep: A function that returns true if the given rune is a separator.
 //
 // Returns:
 //   - []string: A slice of fields extracted from the string, or nil if n is zero.
-func ExtractFirstNFields(s *string, n uint) []string {
+func ExtractFirstNFields(s *string, n uint, isSep func(rune) bool) []string {
 	var result []string
 	start := 0
 	space_count := uint(0)
 
 	for i, char := range *s {
-		if char != ' ' {
+		ok := isSep(char)
+
+		if !ok {
 			continue
 		} else if space_count >= n {
 			break
