@@ -52,3 +52,46 @@ func ExtractFirstNFieldsFunc(s *string, n uint, isSep func(rune) bool) []string 
 	fields := internal.ExtractFirstNFields(s, n, isSep)
 	return fields
 }
+
+// RejectEmpty rejects all empty strings in a slice of strings and returns
+// the number of empty strings rejected.
+//
+// Parameters:
+//   - s: The slice of strings to filter.
+//
+// Returns:
+//   - uint: The number of empty strings rejected.
+func RejectEmpty(s *[]string) uint {
+	if s == nil || len(*s) == 0 {
+		return 0
+	}
+
+	n := internal.RejectEmpty(s)
+	return n
+}
+
+// Join concatenates a slice of strings into a single string with a separator.
+//
+// Parameters:
+//   - s: The slice of strings to join.
+//   - sep: The separator to use.
+//
+// Returns:
+//   - string: The joined string.
+//
+// Example:
+//
+//	strs := []string{"a", "b", "c"}
+//	strings.Join(strs, ", ")
+//	// returns "a, b, c"
+func Join(s []string, sep string) string {
+	if len(s) == 0 {
+		return ""
+	}
+
+	copy_s := make([]string, len(s))
+	copy(copy_s, s)
+
+	str := internal.Join(&copy_s, sep)
+	return str
+}

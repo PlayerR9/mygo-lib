@@ -1,5 +1,7 @@
 package internal
 
+import "strings"
+
 // ExtractFirstNFields extracts up to the first n fields from a given string.
 //
 // Parameters:
@@ -39,5 +41,71 @@ func ExtractFirstNFields(s *string, n uint, isSep func(rune) bool) []string {
 		*s = (*s)[start:]
 	}
 
+	return result
+}
+
+// RejectEmpty rejects all empty strings in a slice of strings and returns
+// the number of empty strings rejected.
+//
+// Parameters:
+//   - s: The slice of strings to filter.
+//
+// Returns:
+//   - uint: The number of empty strings rejected.
+func RejectEmpty(s *[]string) uint {
+	var end uint
+
+	for _, str := range *s {
+		if str == "" {
+			continue
+		}
+
+		(*s)[end] = str
+		end++
+	}
+
+	n := uint(len(*s)) - end
+
+	if end == 0 {
+		clear(*s)
+		*s = nil
+	} else {
+		clear((*s)[end:])
+		*s = (*s)[:end]
+	}
+
+	return n
+}
+
+// Join concatenates a slice of strings into a single string with a separator.
+//
+// Parameters:
+//   - s: The slice of strings to join.
+//   - sep: The separator to use.
+//
+// Returns:
+//   - string: The joined string.
+//
+// Example:
+//
+//	strs := []string{"a", "b", "c"}
+//	strings.Join(&strs, ", ")
+//	// returns "a, b, c"
+func Join(s *[]string, sep string) string {
+	_ = RejectEmpty(s)
+	if len(*s) == 0 {
+		return ""
+	}
+
+	var builder strings.Builder
+
+	_, _ = builder.WriteString((*s)[0])
+
+	for _, str := range (*s)[1:] {
+		_, _ = builder.WriteString(sep)
+		_, _ = builder.WriteString(str)
+	}
+
+	result := builder.String()
 	return result
 }
