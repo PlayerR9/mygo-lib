@@ -94,7 +94,9 @@ func Split(chars []rune, isSep func(rune) bool) [][]rune {
 func Equal(a, b []rune) bool {
 	if len(a) != len(b) {
 		return false
-	} else if len(a) == 0 {
+	}
+
+	if len(a) == 0 {
 		return true
 	}
 

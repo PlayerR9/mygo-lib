@@ -20,11 +20,11 @@ func Exists(loc string) (bool, error) {
 	}
 
 	ok := errors.Is(err, os.ErrNotExist)
-	if ok {
-		err = nil
+	if !ok {
+		return false, err
 	}
 
-	return false, err
+	return false, nil
 }
 
 // CreateDirectory creates a directory at the given location with the given mode.
@@ -43,20 +43,29 @@ func Exists(loc string) (bool, error) {
 func CreateDirectory(loc string, mode os.FileMode, force bool) error {
 	_, err := os.Stat(loc)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			err = os.Mkdir(loc, mode)
+		ok := errors.Is(err, os.ErrNotExist)
+		if !ok {
+			return err
 		}
 
-		return err
-	} else if !force {
+		if err := os.Mkdir(loc, mode); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if !force {
 		return os.ErrExist
 	}
 
-	err = os.RemoveAll(loc)
-	if err != nil {
+	if err := os.RemoveAll(loc); err != nil {
 		return err
 	}
 
-	err = os.Mkdir(loc, mode)
-	return err
+	if err := os.Mkdir(loc, mode); err != nil {
+		return err
+	}
+
+	return nil
 }

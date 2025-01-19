@@ -17,7 +17,9 @@ func WriteBytes(w interface {
 	n, err := w.Write(data)
 	if err != nil {
 		return err
-	} else if n != len(data) {
+	}
+
+	if n != len(data) {
 		panic(BugMismatchWritten)
 	}
 

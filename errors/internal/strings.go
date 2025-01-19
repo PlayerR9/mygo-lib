@@ -48,8 +48,9 @@ func RejectEmpty(s []string) []string {
 //	Quote(strs)
 //	fmt.Println(strs) // prints ["hello", " world"]
 func Quote(s []string) {
-	for i := range s {
-		s[i] = strconv.Quote(s[i])
+	for i, e := range s {
+		str := strconv.Quote(e)
+		s[i] = str
 	}
 }
 

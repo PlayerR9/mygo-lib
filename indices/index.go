@@ -66,7 +66,7 @@ func (idx Index) OrElse(fallback uint) uint {
 	underlying := uint(idx)
 
 	if underlying != MaxUint {
-		fallback = underlying
+		return underlying
 	}
 
 	return fallback

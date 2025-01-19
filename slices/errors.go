@@ -18,5 +18,6 @@ var (
 )
 
 func init() {
+	ErrNilReceiver = errors.New("receiver must not be nil")
 	ErrNoPredicate = errors.New("no predicate was provided")
 }

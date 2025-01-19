@@ -77,8 +77,10 @@ func Reject[S ~[]E, E any](s *S, predicate func(e E) bool) uint {
 // Returns:
 //   - uint: The number of elements rejected.
 func RejectNils[S ~[]*E, E any](s *S) uint {
+	lenS := uint(len(*s))
+
 	var end uint
-	for end < uint(len(*s)) && (*s)[end] != nil {
+	for end < lenS && (*s)[end] != nil {
 		end++
 	}
 
@@ -94,7 +96,7 @@ func RejectNils[S ~[]*E, E any](s *S) uint {
 		i-- // retry since we have overwritten the element
 	}
 
-	rejected := uint(len(*s)) - end
+	rejected := lenS - end
 
 	clear((*s)[end:])
 	*s = (*s)[:end]

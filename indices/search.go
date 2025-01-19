@@ -17,9 +17,9 @@ func FirstIndexOf[S ~[]E, E any](s S, predicate func(e E) bool) Index {
 	}
 
 	idx, ok := internal.FirstIndexOf(s, predicate)
-	if ok {
-		return Some(idx)
-	} else {
+	if !ok {
 		return None()
 	}
+
+	return Some(idx)
 }

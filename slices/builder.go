@@ -49,7 +49,7 @@ func (b Builder[E]) Build() []E {
 // creating a new builder if you need to build many slices in a row.
 //
 // Returns:
-//   - error: An error if the builder is nil.
+//   - error: An error if the builder could not be reset.
 //
 // Errors:
 //   - ErrNilReceiver: If the receiver is nil.

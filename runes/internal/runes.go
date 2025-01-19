@@ -100,7 +100,12 @@ func TrimLeft(s *[]rune, isTrim func(rune) bool) uint {
 
 	var end uint
 
-	for end < lenChars && isTrim((*s)[end]) {
+	for end < lenChars {
+		ok := isTrim((*s)[end])
+		if !ok {
+			break
+		}
+
 		end++
 	}
 
@@ -128,7 +133,12 @@ func TrimRight(s *[]rune, isTrim func(rune) bool) uint {
 
 	end := lenChars
 
-	for end > 0 && isTrim((*s)[end-1]) {
+	for end > 0 {
+		ok := isTrim((*s)[end-1])
+		if !ok {
+			break
+		}
+
 		end--
 	}
 

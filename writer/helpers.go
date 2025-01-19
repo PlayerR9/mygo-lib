@@ -21,7 +21,9 @@ import (
 func WriteBytes(w Writer, data []byte) error {
 	if w == nil {
 		return ErrNoWriter
-	} else if len(data) == 0 {
+	}
+
+	if len(data) == 0 {
 		return nil
 	}
 
